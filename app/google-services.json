@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "416091643823",
+    "project_id": "workoutsolidproject",
+    "storage_bucket": "workoutsolidproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416091643823:android:7cc295b738423b8c0d595a",
+        "android_client_info": {
+          "package_name": "com.example.workoutsolidproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHY8suDWWbXJvr4dU2z6RX7NnKpeIw0A8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
