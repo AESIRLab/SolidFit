@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.sp
@@ -27,16 +26,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.compose.composable
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import com.example.solid_annotation.SolidAuthAnnotation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -127,11 +122,11 @@ fun WorkoutApp() {
                         coroutineScope.launch {
                             repository.insert(
                                 WorkoutItem(
-                                    id = "1",
+                                    id = "",
                                     name = name,
                                     caloriesBurned = calories,
                                     duration = duration,
-//                                    date = System.currentTimeMillis().toString()
+                                    date = System.currentTimeMillis()
                                 )
                             )
                             Log.d("ITEM_CREATION", "Made it past item creation")

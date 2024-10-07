@@ -8,10 +8,6 @@ import com.nimbusds.jwt.SignedJWT
 import com.solidannotations.AuthTokenStore
 import com.solidannotations.DPoPAuth
 import com.solidannotations.tokenRequest
-
-// Can't import until I fix the problem of tokenRequest() function not generating in AuthUtilities.kt
-//import com.solidannotations.tokenRequest
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

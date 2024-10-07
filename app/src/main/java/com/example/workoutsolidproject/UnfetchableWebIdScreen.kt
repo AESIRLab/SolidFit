@@ -19,8 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.solidannotations.AuthTokenStore
 import com.solidannotations.fetchAuth
 import com.solidannotations.fetchConfig
@@ -48,14 +51,18 @@ fun UnfetchableWebIdScreen(
         }
 
         Image(
-            painter = painterResource(id = R.drawable.ic_android_black_24dp),
+            painter = painterResource(id = R.drawable.exercise_black_24px),
             contentDescription = "App logo"
         )
-        Text(text=appTitle)
+        Text(
+            text=appTitle,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
         TextField(
             value = solidProvider,
             onValueChange =  { solidProvider = it },
-            label = { Text("Solid Provider") },
+            label = { Text("Solid Provider", fontStyle = FontStyle.Italic) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         )
         val context = LocalContext.current

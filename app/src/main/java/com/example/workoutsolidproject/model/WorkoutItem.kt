@@ -43,7 +43,7 @@ data class WorkoutItem(
     var name: String = "",
     var caloriesBurned: String,
     var duration: String,
-//    var date: String = System.currentTimeMillis().toString()
+    var date: Long = System.currentTimeMillis()
 )
 
 @Composable
@@ -70,13 +70,14 @@ fun WorkoutItem(
                     .weight(1f)
                     .padding(end = 16.dp)
             ){
-                Text(text = workout.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = workout.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp))
                 Text(text = "Calories: ${workout.caloriesBurned}")
                 Text(text = "Duration: ${workout.duration} minutes")
-//                Text(text = "Date: ${
-//                    SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(
-//                    Date(workout.date)
-//                )}")
+                Text(text = "Date: " +
+                        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(
+                    Date(workout.date)
+                )
+                )
             }
 
             IconButton(onClick = { onEdit(workout) }) {
@@ -96,13 +97,3 @@ fun WorkoutItem(
         }
     }
 }
-
-
-//floatingActionButton = {
-//    FloatingActionButton(
-//        containerColor = Color.hsl(224f, 1f,0.73f),
-//        onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) }
-//    ) {
-//        Icon(Icons.Filled.Add, contentDescription = "Add workout")
-//    }
-//}

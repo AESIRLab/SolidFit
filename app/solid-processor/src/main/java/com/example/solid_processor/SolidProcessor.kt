@@ -410,32 +410,47 @@ class SolidProcessor(
         filteredProps.forEach {
             resourceConverterFnSpec
                 .addStatement("val ${it.simpleName.getShortName()}Prop = anonModel.createProperty(NS_$className + \"${it.simpleName.getShortName()}\")")
-            resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop).`object`")
-            resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Literal = %T.createTypedLiteral(${it.simpleName.getShortName()}Object)", resourceFactoryClass)
+//            resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Literal = anonModel.createTypedLiteral(${it.simpleName.getShortName()}Object)")
             when (it.type.resolve().toString()) {
 
                 "String" -> {
-                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.string")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop).`object`")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Object.toString() ")
                 }
 
                 "Date" -> {
-                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal")
+//                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal")
+
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop)")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Object.toString() as Date")
                 }
 
                 "Float" -> {
-                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.float")
+//                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.float")
+
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop)")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Object.toString() as Float")
                 }
 
                 "Int" -> {
-                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.int")
+//                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.int")
+
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop)")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Object.toString() as Integer")
                 }
 
                 "Boolean" -> {
-                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.boolean")
+
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop)")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Object.toString() as Boolean")
+//                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.boolean")
                 }
 
                 "Long" -> {
-                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.long")
+
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()}Object = resource.getProperty(${it.simpleName.getShortName()}Prop)")
+                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Object.long")
+//                    resourceConverterFnSpec.addStatement("val ${it.simpleName.getShortName()} = ${it.simpleName.getShortName()}Literal.long")
                 }
             }
         }
@@ -824,26 +839,26 @@ class SolidProcessor(
             when (it.type.resolve().toString()) {
 
                 "String" -> {
-                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = ResourceFactory.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createLiteral(item.${it.simpleName.getShortName()}).string")
                 }
                 "Date" -> {
-                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = ResourceFactory.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createLiteral(item.${it.simpleName.getShortName()})")
                 }
                 "Float" -> {
-                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = ResourceFactory.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
                 }
                 "Int" -> {
-                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = ResourceFactory.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
                 }
                 "Boolean" -> {
-                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = ResourceFactory.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
                 }
                 "Long" -> {
-                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = ResourceFactory.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    insertFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
                 }
             }
 
-            insertFnBuilder.addStatement("mThingUri.addLiteral(m${it.simpleName.getShortName()}, ${it.simpleName.getShortName()}Literal)")
+            insertFnBuilder.addStatement("mThingUri.addProperty(m${it.simpleName.getShortName()}, ${it.simpleName.getShortName()}Literal)")
         }
 
         val insertFn = insertFnBuilder

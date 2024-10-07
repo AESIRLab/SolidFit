@@ -19,16 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.solidannotations.AuthTokenStore
-//import com.solidannotations.R
 import com.solidannotations.fetchAuth
 import com.solidannotations.fetchConfig
 import com.solidannotations.fetchRegistration
 import com.solidannotations.okHttpGetRequest
 import com.solidannotations.setOidcProvider
-//import com.zybooks.testinstructionsapp.ui.common.StartButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,18 +55,22 @@ fun StartAuthScreen(
         }
 
         Image(
-            painter = painterResource(id = R.drawable.ic_android_black_24dp),
+            painter = painterResource(id = R.drawable.exercise_black_24px),
             contentDescription = "App logo"
         )
-        Text(text=appTitle)
+        Text(
+            text=appTitle,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
         TextField(
             value = webId,
             onValueChange =  { webId = it },
-            label = { Text("WebId") },
+            label = { Text("WebId", fontStyle = FontStyle.Italic) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         )
         val context = LocalContext.current
-        StartButton(text = "Start Auth!") {
+        StartButton(text = "Start") {
 
             val redirectUris = listOf("app://www.solid-oidc.com/callback")
             CoroutineScope(Dispatchers.IO).launch {

@@ -1,6 +1,5 @@
 package com.example.workoutsolidproject
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.workoutsolidproject.model.WorkoutItem
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditWorkoutScreen(
