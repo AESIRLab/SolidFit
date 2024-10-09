@@ -22,9 +22,11 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import com.example.solid_annotation.SolidAnnotation
+import com.sun.tools.javac.util.Log
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.util.Locale
+import java.util.logging.Logger
 
 
 const val PACKAGE_NAME = "com.solidannotations"
@@ -94,7 +96,6 @@ class SolidProcessor(
             .builder("context", contextType)
             .build()
 
-        // TODO: figure out the best way to get the base package name
         val tokenStoreType = ClassName(packageName, "AuthTokenStore")
 //        val tokenStoreType = ClassName("com.zybooks.testannotationsprocessor.ui.store", "AuthTokenStore")
 
@@ -691,6 +692,7 @@ class SolidProcessor(
         }
 
         val uuidClass = ClassName("java.util", "UUID")
+//        val loggerClass = ClassName("android.util", "Log")
         val baseClass = ClassName(annotatedClass.packageName.asString(), annotatedClass.simpleName.getShortName())
         val listClass = List::class.asTypeName()
         val flowClass = ClassName("kotlinx.coroutines.flow", "Flow")
@@ -723,8 +725,12 @@ class SolidProcessor(
             )
             .addModifiers(listOf(KModifier.SUSPEND))
             .beginControlFlow("if (item.id == \"\")")
-            // should not have to do this but here we fuckin are
+//            .addStatement("var id = item.id")
+//            .addStatement("%T.d(\"REPOSITORY\", \"ID BEFORE: \$id\")", loggerClass)
+            // should not have to do this but here we are
             .addStatement("item.id = %T.randomUUID().toString()", uuidClass)
+//            .addStatement("id = item.id")
+//            .addStatement("%T.d(\"REPOSITORY\", \"ID AFTER: \$id\")", loggerClass)
             .endControlFlow()
             .addStatement("${daoParam.name}.insert(item)")
             .build()

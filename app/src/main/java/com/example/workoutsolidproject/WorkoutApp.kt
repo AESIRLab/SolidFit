@@ -39,6 +39,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.workoutsolidproject.model.WorkoutItem
 import com.solidannotations.AuthTokenStore
@@ -113,12 +115,9 @@ fun WorkoutApp() {
 
             // Add/edit workout screen
             composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
-                //TODO: Ask Zach if this is valid
                 val coroutineScope = rememberCoroutineScope()
                 AddEditWorkoutScreen(
                     onSaveWorkout = { name, calories, duration->
-                        // TODO: and here
-                        Log.d("ITEM_CREATION", "Before item creation")
                         coroutineScope.launch {
                             repository.insert(
                                 WorkoutItem(
@@ -129,9 +128,8 @@ fun WorkoutApp() {
                                     date = System.currentTimeMillis()
                                 )
                             )
-                            Log.d("ITEM_CREATION", "Made it past item creation")
-                            Log.d("ITEM_CREATION", "Calories: $calories")
-                            Log.d("ITEM_CREATION", "Duration: $duration")
+
+
                             // Set destination instead of popBackStack()
                             navController.popBackStack()
                         }
@@ -191,8 +189,6 @@ fun WorkoutApp() {
                             .padding(top = innerPadding.calculateTopPadding(), bottom = innerPadding.calculateBottomPadding())
 //                            .navigationBarsPadding()
                     ) {
-                        // TODO: Ask Zach where I access the URI from
-                        // Needs implementation
                         WorkoutList(
                             workouts = workouts,
                             onDeleteWorkout = { workout ->
@@ -212,34 +208,33 @@ fun WorkoutApp() {
 
 
 
-//            composable(
-//                // TODO: add '$' before {workoutUri}
-//                route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/{workoutUri}",
-//                arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })
-//            ) { backStackEntry ->
-//                val workoutUri = backStackEntry.arguments?.getString("workoutUri") ?: return@composable
-//                val workoutState = repository.getWorkoutItemLiveData(workoutUri).collectAsState(initial = null)
-//
-//                if (workoutState.value != null) {
-//                    AddEditWorkoutScreen(
-//                        workout = workoutState.value,
-//                        onSaveWorkout = {name, calories, duration ->
-////                            WorkoutItemViewModel.updateWorkout(
-//                            workoutState.value!!.copy(
-//                                id = id.toString(),
-//                                name = name,
-//                                caloriesBurned = calories,
-//                                duration = duration
-//                            )
-//
-//                            navController.popBackStack()
-//                        },
-//                        onCancel = {
-//                            navController.popBackStack()
-//                        }
-//                    )
-//                }
-//            }
+            composable(
+                route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/{workoutUri}",
+                arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val workoutUri = backStackEntry.arguments?.getString("workoutUri") ?: return@composable
+                val workoutState = repository.getWorkoutItemLiveData(workoutUri).collectAsState(initial = null)
+
+                if (workoutState.value != null) {
+                    AddEditWorkoutScreen(
+                        workout = workoutState.value,
+                        onSaveWorkout = {name, calories, duration ->
+                            WorkoutItemViewModel.updateWorkout(
+                                workoutState.value!!.copy(
+                                    id = id.toString(),
+                                    name = name,
+                                    caloriesBurned = calories,
+                                    duration = duration
+                                )
+                            )
+                            navController.popBackStack()
+                        },
+                        onCancel = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            }
         }
     }
 }
