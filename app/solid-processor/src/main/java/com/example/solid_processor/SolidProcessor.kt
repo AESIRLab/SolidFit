@@ -691,6 +691,7 @@ class SolidProcessor(
             throw Error("class name cannot be empty")
         }
 
+        val loggerClass = ClassName("android.util", "Log")
         val uuidClass = ClassName("java.util", "UUID")
 //        val loggerClass = ClassName("android.util", "Log")
         val baseClass = ClassName(annotatedClass.packageName.asString(), annotatedClass.simpleName.getShortName())
@@ -734,6 +735,24 @@ class SolidProcessor(
             .endControlFlow()
             .addStatement("${daoParam.name}.insert(item)")
             .build()
+
+        val updateFn = FunSpec.builder("update")
+            .addAnnotation(ClassName("androidx.annotation", "WorkerThread"))
+            .addParameter(
+                ParameterSpec.builder("item", baseClass)
+                    .build()
+            )
+            .addParameter(
+                ParameterSpec.builder("uri", String::class)
+                    .build()
+            )
+            .addModifiers(listOf(KModifier.SUSPEND))
+            .addStatement("var uri = item.id")
+            .addStatement("%T.d(\"REPOSITORY\", \"id: \$item.id\")", loggerClass)
+            .addStatement("%T.d(\"REPOSITORY\", \"uri: \$uri\")", loggerClass)
+            .addStatement("${daoParam.name}.update(item, uri)")
+            .build()
+
 
         val deleteByUriFn = FunSpec.builder("deleteByUri")
             .addAnnotation(ClassName("androidx.annotation", "WorkerThread"))
@@ -785,6 +804,7 @@ class SolidProcessor(
                     .addFunctions(
                         listOf(
                             insertFn,
+                            updateFn,
                             insertManyFn,
                             deleteByUriFn,
                             getLiveDataFn
@@ -809,6 +829,7 @@ class SolidProcessor(
             .name
 //        val packageName = annotatedClass.packageName.getQualifier()
         val packageName = PACKAGE_NAME
+        val loggerClass = ClassName("android.util", "Log")
         val modelClass = ClassName("com.hp.hpl.jena.rdf.model", "Model")
         val contextClass = ClassName("android.content", "Context")
         val resourceFactory = ClassName("com.hp.hpl.jena.rdf.model", "ResourceFactory")
@@ -873,6 +894,55 @@ class SolidProcessor(
             .addStatement("model.write(os, null, null)")
             .addStatement("modelLiveData.value = all${className}s()")
             .addModifiers(listOf(KModifier.SUSPEND, KModifier.OVERRIDE))
+            .build()
+
+        val updateFnBuilder = FunSpec.builder("update")
+            .addParameter(
+                "item", baseClassName
+            )
+            .addParameter(
+                "uri", String::class
+            )
+            .addStatement("val id = java.util.UUID.randomUUID().toString()")
+            .addStatement("val mThingUri = model.createResource(\"\$baseUri#\$id\")")
+
+            filteredProperties.forEach {
+                updateFnBuilder.addStatement("val m${it.simpleName.getShortName()} = model.createProperty(%T.NS_$className + \"${it.simpleName.getShortName()}\")", utilsObject)
+                when (it.type.resolve().toString()) {
+
+                    "String" -> {
+                        updateFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createLiteral(item.${it.simpleName.getShortName()}).string")
+                    }
+                    "Date" -> {
+                        updateFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createLiteral(item.${it.simpleName.getShortName()})")
+                    }
+                    "Float" -> {
+                        updateFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    }
+                    "Int" -> {
+                        updateFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    }
+                    "Boolean" -> {
+                        updateFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    }
+                    "Long" -> {
+                        updateFnBuilder.addStatement("val ${it.simpleName.getShortName()}Literal = model.createTypedLiteral(item.${it.simpleName.getShortName()})")
+                    }
+                }
+
+                updateFnBuilder.addStatement("mThingUri.addProperty(m${it.simpleName.getShortName()}, ${it.simpleName.getShortName()}Literal)")
+            }
+
+        val updateFn = updateFnBuilder
+            .addStatement("val file = java.io.File(context.filesDir, saveFilePath)")
+            .addStatement("val os = file.outputStream()")
+            .addStatement("model.write(os, null, null)")
+            .addStatement("modelLiveData.value = all${className}s()")
+            .addModifiers(listOf(KModifier.SUSPEND, KModifier.OVERRIDE))
+            .addStatement("delete(uri)")
+            .addStatement("%T.d(\"uri\", \"uri: \$uri\")", loggerClass)
+            .addStatement("%T.d(\"id\", \"id: \$id\")", loggerClass)
+
             .build()
 
         val deleteFn = FunSpec.builder("delete")
@@ -991,6 +1061,7 @@ class SolidProcessor(
                             getAllItemsFn,
                             listAllItemsFn,
                             insertFn,
+                            updateFn,
                             deleteFn,
                             getByIdFn
                         )
@@ -1033,6 +1104,16 @@ class SolidProcessor(
             .addModifiers(listOf(KModifier.SUSPEND, KModifier.ABSTRACT))
             .build()
 
+        val updateFn = FunSpec.builder("update")
+            .addParameter(
+                "item", baseClass
+            )
+            .addParameter(
+                "uri", String::class
+            )
+            .addModifiers(listOf(KModifier.SUSPEND, KModifier.ABSTRACT))
+            .build()
+
         val deleteFn = FunSpec.builder("delete")
             .addParameter(
                 "uri", String::class
@@ -1058,7 +1139,8 @@ class SolidProcessor(
                             getByIdFn,
                             deleteFn,
                             getAllFn,
-                            insertFn
+                            insertFn,
+                            updateFn
                         )
                     )
                     .build()

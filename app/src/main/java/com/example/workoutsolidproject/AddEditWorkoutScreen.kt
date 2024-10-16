@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,15 +36,14 @@ import com.example.workoutsolidproject.model.WorkoutItem
 @Composable
 fun AddEditWorkoutScreen(
     workout: WorkoutItem? = null,
-    onSaveWorkout: (String, String, String) -> Unit,
+    onSaveWorkout: (String, String, String, String) -> Unit,
     onCancel: () -> Unit
 ) {
     // TODO: Once libs version is working, I can make these data types other than just string
-    //        var id by remember { mutableStateOf(workout?.id ?: "") }
+    var id by remember { mutableStateOf(workout?.id ?: "") }
     var name by remember { mutableStateOf(workout?.name ?: "") }
-    var caloriesBurned by remember { mutableStateOf(workout?.caloriesBurned?.toString() ?: "") }
+    var caloriesBurned by remember { mutableStateOf(workout?.caloriesBurned ?: "") }
     var duration by remember { mutableStateOf(workout?.duration  ?: "") }
-//        var date by remember { mutableStateOf(workout?.date?.toString()  ?: "") }
 
     Scaffold(
         topBar = {
@@ -125,7 +125,7 @@ fun AddEditWorkoutScreen(
                         0.73f)),
                     onClick = {
                         if (name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()) {
-                            onSaveWorkout(name, caloriesBurned, duration)
+                            onSaveWorkout(id, name, caloriesBurned, duration)
                         }
                     },
                     enabled = name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()

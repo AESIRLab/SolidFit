@@ -46,7 +46,7 @@ import com.example.workoutsolidproject.model.WorkoutItem
 import com.solidannotations.AuthTokenStore
 import kotlinx.coroutines.launch
 
-
+// All apps screens
 enum class SolidAuthFlowScreen {
     AddEditWorkoutScreen,
     WorkoutList,
@@ -117,7 +117,7 @@ fun WorkoutApp() {
             composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
                 val coroutineScope = rememberCoroutineScope()
                 AddEditWorkoutScreen(
-                    onSaveWorkout = { name, calories, duration->
+                    onSaveWorkout = { _, name, calories, duration ->
                         coroutineScope.launch {
                             repository.insert(
                                 WorkoutItem(
@@ -129,9 +129,7 @@ fun WorkoutApp() {
                                 )
                             )
 
-
-                            // Set destination instead of popBackStack()
-                            navController.popBackStack()
+                            navController.navigate("WorkoutList")
                         }
                     },
                     onCancel = {
@@ -214,23 +212,26 @@ fun WorkoutApp() {
             ) { backStackEntry ->
                 val workoutUri = backStackEntry.arguments?.getString("workoutUri") ?: return@composable
                 val workoutState = repository.getWorkoutItemLiveData(workoutUri).collectAsState(initial = null)
-
+                val coroutineScope = rememberCoroutineScope()
                 if (workoutState.value != null) {
                     AddEditWorkoutScreen(
                         workout = workoutState.value,
-                        onSaveWorkout = {name, calories, duration ->
-                            WorkoutItemViewModel.updateWorkout(
-                                workoutState.value!!.copy(
-                                    id = id.toString(),
-                                    name = name,
-                                    caloriesBurned = calories,
-                                    duration = duration
+                        onSaveWorkout = {id, name, calories, duration ->
+                            coroutineScope.launch {
+                                repository.update(
+                                    workoutState.value!!.copy(
+                                        id = id,
+                                        name = name,
+                                        caloriesBurned = calories,
+                                        duration = duration,
+                                        date = System.currentTimeMillis()
+                                    ), workoutUri
                                 )
-                            )
-                            navController.popBackStack()
+                            }
+                            navController.navigate("WorkoutList")
                         },
                         onCancel = {
-                            navController.popBackStack()
+                            navController.navigate("WorkoutList")
                         }
                     )
                 }
