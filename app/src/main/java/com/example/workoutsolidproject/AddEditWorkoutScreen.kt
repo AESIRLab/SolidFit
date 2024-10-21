@@ -39,13 +39,13 @@ fun AddEditWorkoutScreen(
     onSaveWorkout: (String, String, String, String) -> Unit,
     onCancel: () -> Unit
 ) {
-    // TODO: Once libs version is working, I can make these data types other than just string
     var id by remember { mutableStateOf(workout?.id ?: "") }
     var name by remember { mutableStateOf(workout?.name ?: "") }
     var caloriesBurned by remember { mutableStateOf(workout?.caloriesBurned ?: "") }
     var duration by remember { mutableStateOf(workout?.duration  ?: "") }
 
     Scaffold(
+        // Bar at the top of the screen
         topBar = {
         TopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
@@ -85,12 +85,14 @@ fun AddEditWorkoutScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Name field
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Workout Name") },
                 modifier = Modifier.fillMaxWidth()
             )
+            // Calories field
             OutlinedTextField(
                 value = caloriesBurned,
                 onValueChange = { caloriesBurned = it },
@@ -98,6 +100,7 @@ fun AddEditWorkoutScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
+            // Duration field
             OutlinedTextField(
                 value = duration,
                 onValueChange = { duration = it },
@@ -107,8 +110,9 @@ fun AddEditWorkoutScreen(
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
+                // Cancel add/edit workout
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
                         224f,
@@ -118,6 +122,7 @@ fun AddEditWorkoutScreen(
                 ) {
                     Text("Cancel")
                 }
+                // Save workout
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
                         224f,

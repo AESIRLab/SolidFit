@@ -67,15 +67,16 @@ fun WorkoutApp() {
     val tokenStore = AuthTokenStore(LocalContext.current.applicationContext)
     val coroutineScope = rememberCoroutineScope()
 
+
+
     Scaffold {
         val context = LocalContext.current
         NavHost(
             navController = navController,
             startDestination = SolidAuthFlowScreen.StartAuthScreen.name,
-//            modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
         ) {
 
-            // Authentication screen (Starting screen)
+            // SCREEN: Authentication (Starting screen)
             composable(route = SolidAuthFlowScreen.StartAuthScreen.name) {
                 StartAuthScreen(
                     tokenStore = tokenStore,
@@ -94,7 +95,7 @@ fun WorkoutApp() {
                 )
             }
 
-            // Screen if the web id is unfetchable
+            // SCREEN: The web id is unfetchable
             composable(route = SolidAuthFlowScreen.UnfetchableWebIdScreen.name) {
                 UnfetchableWebIdScreen(tokenStore = tokenStore) { err ->
                     Handler(Looper.getMainLooper()).post {
@@ -103,7 +104,7 @@ fun WorkoutApp() {
                 }
             }
 
-            // Authentication complete screen
+            // SCREEN: Authentication complete
             composable(
                 route = SolidAuthFlowScreen.AuthCompleteScreen.name,
                 deepLinks = listOf(navDeepLink { uriPattern = "app://www.solid-oidc.com/callback" })) {
@@ -113,7 +114,7 @@ fun WorkoutApp() {
                 }
             }
 
-            // Add/edit workout screen
+            // SCREEN: Add workout
             composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
                 val coroutineScope = rememberCoroutineScope()
                 AddEditWorkoutScreen(
@@ -125,7 +126,7 @@ fun WorkoutApp() {
                                     name = name,
                                     caloriesBurned = calories,
                                     duration = duration,
-                                    date = System.currentTimeMillis()
+//                                    date = System.currentTimeMillis()
                                 )
                             )
 
@@ -137,7 +138,7 @@ fun WorkoutApp() {
                     }
                 )
             }
-            // Screen that displays the list of workouts
+            // SCREEN: displays the list of workouts
             composable(route = SolidAuthFlowScreen.WorkoutList.name) {
                 val workouts by repository.allWorkoutItems.collectAsState(initial = emptyList())
 
@@ -205,7 +206,7 @@ fun WorkoutApp() {
             }
 
 
-
+            // SCREEN: Edit workout
             composable(
                 route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/{workoutUri}",
                 arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })

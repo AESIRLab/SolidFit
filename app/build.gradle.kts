@@ -97,6 +97,15 @@ dependencies {
     implementation (libs.androidx.room.ktx.v260)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+
+
+
     ksp (libs.androidx.room.compiler.v260)
 
     implementation(libs.androidx.appcompat)

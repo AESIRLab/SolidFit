@@ -61,8 +61,8 @@ fun WorkoutItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(start = 16.dp, end = 12.dp, top = 16.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column (
@@ -74,7 +74,7 @@ fun WorkoutItem(
                 Text(text = "Calories: ${workout.caloriesBurned}")
                 Text(text = "Duration: ${workout.duration} minutes")
                 Text(text = "Date: " +
-                        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(
+                        SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault()).format(
                     Date(workout.date)
                 )
                 )

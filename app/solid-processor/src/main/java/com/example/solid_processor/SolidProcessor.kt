@@ -726,12 +726,8 @@ class SolidProcessor(
             )
             .addModifiers(listOf(KModifier.SUSPEND))
             .beginControlFlow("if (item.id == \"\")")
-//            .addStatement("var id = item.id")
-//            .addStatement("%T.d(\"REPOSITORY\", \"ID BEFORE: \$id\")", loggerClass)
             // should not have to do this but here we are
             .addStatement("item.id = %T.randomUUID().toString()", uuidClass)
-//            .addStatement("id = item.id")
-//            .addStatement("%T.d(\"REPOSITORY\", \"ID AFTER: \$id\")", loggerClass)
             .endControlFlow()
             .addStatement("${daoParam.name}.insert(item)")
             .build()
