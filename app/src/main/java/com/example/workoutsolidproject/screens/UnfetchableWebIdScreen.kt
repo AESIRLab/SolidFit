@@ -1,4 +1,4 @@
-package com.example.workoutsolidproject
+package com.example.workoutsolidproject.screens
 
 import android.content.Intent
 import android.net.Uri
@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.workoutsolidproject.R
+import com.example.workoutsolidproject.StartButton
 import com.solidannotations.AuthTokenStore
 import com.solidannotations.fetchAuth
 import com.solidannotations.fetchConfig

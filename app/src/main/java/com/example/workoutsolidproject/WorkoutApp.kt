@@ -1,14 +1,7 @@
 package com.example.workoutsolidproject
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.runtime.getValue
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -19,32 +12,48 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
-import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.ui.text.font.FontWeight
-import androidx.navigation.compose.composable
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
-import com.example.solid_annotation.SolidAuthAnnotation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.example.solid_annotation.SolidAuthAnnotation
 import com.example.workoutsolidproject.model.WorkoutItem
+import com.example.workoutsolidproject.screens.AddEditWorkoutScreen
+import com.example.workoutsolidproject.screens.AuthCompleteScreen
+import com.example.workoutsolidproject.screens.StartAuthScreen
+import com.example.workoutsolidproject.screens.UnfetchableWebIdScreen
 import com.solidannotations.AuthTokenStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 // All apps screens
 enum class SolidAuthFlowScreen {
@@ -66,7 +75,6 @@ fun WorkoutApp() {
     val viewModel = WorkoutItemViewModel(repository)
     val tokenStore = AuthTokenStore(LocalContext.current.applicationContext)
     val coroutineScope = rememberCoroutineScope()
-
 
 
     Scaffold {
@@ -126,15 +134,16 @@ fun WorkoutApp() {
                                     name = name,
                                     caloriesBurned = calories,
                                     duration = duration,
-//                                    date = System.currentTimeMillis()
                                 )
                             )
+
+                            saveWorkoutLog(context)
 
                             navController.navigate("WorkoutList")
                         }
                     },
                     onCancel = {
-                        navController.popBackStack()
+                        navController.navigate("WorkoutList")
                     }
                 )
             }
@@ -185,7 +194,10 @@ fun WorkoutApp() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = innerPadding.calculateTopPadding(), bottom = innerPadding.calculateBottomPadding())
+                            .padding(
+                                top = innerPadding.calculateTopPadding(),
+                                bottom = innerPadding.calculateBottomPadding()
+                            )
 //                            .navigationBarsPadding()
                     ) {
                         WorkoutList(
@@ -229,6 +241,7 @@ fun WorkoutApp() {
                                     ), workoutUri
                                 )
                             }
+
                             navController.navigate("WorkoutList")
                         },
                         onCancel = {
@@ -241,4 +254,13 @@ fun WorkoutApp() {
     }
 }
 
+fun saveWorkoutLog(context: Context) {
+    val sharedPreferences = context.getSharedPreferences("workoutPrefs", Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+
+    // Saves current date - used to see if user has already logged workout for the day -> wont notify again
+    val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    editor.putString("lastWorkoutDate", todayDate)
+    editor.apply()
+}
 

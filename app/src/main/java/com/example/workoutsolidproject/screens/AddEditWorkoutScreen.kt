@@ -1,4 +1,4 @@
-package com.example.workoutsolidproject
+package com.example.workoutsolidproject.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Button
@@ -19,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.model.WorkoutItem
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.workoutsolidproject"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -171,5 +171,8 @@ dependencies {
         exclude(group = "com.android.support", module = "support-annotations")
     }
     androidTestImplementation(libs.androidx.junit.v121)
+
+    // Work manager
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 }
 

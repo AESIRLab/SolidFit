@@ -1,4 +1,4 @@
-package com.example.workoutsolidproject
+package com.example.workoutsolidproject.screens
 
 import android.app.Activity
 import android.util.Log
