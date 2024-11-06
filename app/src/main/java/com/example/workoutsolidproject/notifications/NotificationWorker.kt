@@ -5,7 +5,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import showNotification
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -14,8 +13,10 @@ import java.util.concurrent.TimeUnit
 class NotificationWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
 
     override fun doWork(): Result {
+
+        // Skips notification if a workout is logged
         if (isWorkoutLoggedToday(applicationContext)) {
-            return Result.success() // Skip notification if a workout is logged
+            return Result.success()
         }
 
         showNotification(

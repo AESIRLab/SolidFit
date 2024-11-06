@@ -1,9 +1,10 @@
+package com.example.workoutsolidproject.notifications
+
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.workoutsolidproject.MainActivity
 import com.example.workoutsolidproject.R
@@ -13,14 +14,12 @@ fun showNotification(context: Context, title: String, message: String, channelId
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     // Creates notification channel
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val channel = NotificationChannel(
-            channelId,
-            "Workout Reminders",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        notificationManager.createNotificationChannel(channel)
-    }
+    val channel = NotificationChannel(
+        channelId,
+        "Workout Reminders",
+        NotificationManager.IMPORTANCE_DEFAULT
+    )
+    notificationManager.createNotificationChannel(channel)
 
     // the intent opens MainActivity when the notification is pressed
     val intent = Intent(context, MainActivity::class.java)
