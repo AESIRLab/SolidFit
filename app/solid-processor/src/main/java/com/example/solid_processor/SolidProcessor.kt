@@ -1,5 +1,6 @@
 package com.example.solid_processor
 
+import com.example.solid_annotation.SolidAnnotation
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -21,12 +22,9 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.plusParameter
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
-import com.example.solid_annotation.SolidAnnotation
-import com.sun.tools.javac.util.Log
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.util.Locale
-import java.util.logging.Logger
 
 
 const val PACKAGE_NAME = "com.solidannotations"

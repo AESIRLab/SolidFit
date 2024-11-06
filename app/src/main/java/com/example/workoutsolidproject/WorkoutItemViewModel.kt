@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 class WorkoutItemViewModel(private val repository: WorkoutItemRepository): ViewModel() {
     val allItems = repository.allWorkoutItems.asLiveData()
 
-    lateinit var curWorkoutItem: LiveData<WorkoutItem>
+    private lateinit var curWorkoutItem: LiveData<WorkoutItem>
 
     private var updatedCounter = MutableLiveData(0)
 

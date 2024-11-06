@@ -97,12 +97,12 @@ dependencies {
     implementation (libs.androidx.room.ktx.v260)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
-    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 
-    implementation("com.google.firebase:firebase-messaging")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation(libs.firebase.messaging)
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
 
 
 
@@ -110,12 +110,12 @@ dependencies {
 
     implementation(libs.androidx.appcompat)
     //noinspection GradleDependency
-    implementation(libs.androidx.activity.compose) // Use the latest version
+    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom.v20240600))
     implementation(libs.accompanist.themeadapter.material3)
 
 
-    implementation(libs.activity.ktx) // Use the latest version
+    implementation(libs.activity.ktx)
 
 
     // Dependencies for working with Architecture components
@@ -153,7 +153,6 @@ dependencies {
 
     // Kotlin components
     //noinspection GradleDependency
-//    implementation(libs.kotlin.stdlib.jdk7)
     implementation (libs.kotlin.stdlib)
     ksp(libs.dagger.compiler)
     api(libs.kotlinx.coroutines.core)
@@ -173,6 +172,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit.v121)
 
     // Work manager
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation(libs.androidx.work.runtime.ktx)
 }
 

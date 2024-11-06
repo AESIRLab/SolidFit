@@ -1,8 +1,6 @@
 package com.example.workoutsolidproject
 
-import com.example.workoutsolidproject.notifications.NotificationWorker
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -11,13 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.example.workoutsolidproject.notifications.DailyResetWorker
 import com.example.workoutsolidproject.ui.theme.WorkoutSolidProjectTheme
-import java.util.concurrent.TimeUnit
 
 
 class MainActivity : ComponentActivity() {
