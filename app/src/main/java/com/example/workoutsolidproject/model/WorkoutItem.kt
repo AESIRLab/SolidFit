@@ -62,13 +62,13 @@ fun WorkoutItem(
                     .weight(1f)
                     .padding(end = 16.dp)
             ){
-                Text(text = workout.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp))
-                Text(text = "Calories: ${workout.caloriesBurned}")
-                Text(text = "Duration: ${workout.duration} minutes")
+                Text(text = workout.name, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp))
+                Text(text = "Calories: ${workout.caloriesBurned}", fontSize = 15.sp)
+                Text(text = "Duration: ${workout.duration} minutes", fontSize = 15.sp)
                 Text(text = "Date: " +
                         SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault()).format(
                     Date(workout.date)
-                )
+                ), fontSize = 15.sp
                 )
             }
 

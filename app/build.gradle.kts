@@ -3,8 +3,15 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
 
-    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
     alias(libs.plugins.compose.compiler)
+}
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
 android {
@@ -45,6 +52,16 @@ android {
     kotlin {
         task("testClasses")
     }
+    kotlin {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
     buildFeatures {
         compose = true
     }
@@ -65,6 +82,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation(project(":app:solid-annotation"))
+    implementation(libs.androidx.compose.material3)
     ksp(project(":app:solid-processor"))
     ksp(project(":app:solid-auth"))
 
@@ -173,5 +191,10 @@ dependencies {
 
     // Work manager
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Google Health Connect
+    implementation(libs.androidx.connect.client.v110)
+
+
 }
 

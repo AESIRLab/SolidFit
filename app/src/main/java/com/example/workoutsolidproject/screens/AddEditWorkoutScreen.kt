@@ -63,13 +63,13 @@ fun AddEditWorkoutScreen(
                     horizontalArrangement = Arrangement.SpaceBetween)
                 {
                     Text(
-                        "Workout Trainer",
+                        "Add/Edit Workout",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Image(
-                        painter = painterResource(id = R.drawable.exercise_24px),
+                        painter = painterResource(id = R.drawable.exercise_white_34dp),
                         contentDescription = "App logo"
                     )
                 }
@@ -118,12 +118,14 @@ fun AddEditWorkoutScreen(
                         224f,
                         1f,
                         0.73f)),
-                    onClick = onCancel
+                    onClick = onCancel,
+
                 ) {
                     Text("Cancel")
                 }
                 // Save workout
                 Button(
+
                     colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
                         224f,
                         1f,

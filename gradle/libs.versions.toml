@@ -2,17 +2,20 @@
 accompanistThemeadapterMaterial3 = "0.34.0"
 activityKtxVersion = "1.9.3"
 agp = "8.5.2"
+androidx-health-connect = "1.1.0"
 androidxJunit = "1.2.1"
 androidxLifecycleRuntimeKtx = "2.8.7"
 androidxRoomKtx = "2.6.1"
-composeBomVersion = "2024.10.01"
+composeBomVersion = "2024.11.00"
+connectClient = "1.1.0-alpha10"
+connectClientVersion = "1.1.0"
 constraintlayout = "2.2.0"
 converterMoshi = "2.9.0"
 coordinatorlayout = "1.2.0"
 coreTesting = "2.2.0"
 credentials = "1.5.0-beta01"
 daggerCompiler = "2.51.1"
-firebaseBom = "33.5.1"
+firebaseBom = "33.6.0"
 graphicsShapes = "1.0.1"
 kotlin = "2.0.0"
 junit = "4.13.2"
@@ -35,7 +38,7 @@ material3Android = "1.3.1"
 roomCommon = "2.6.1"
 appcompat = "1.7.0"
 activity = "1.9.3"
-navigationCompose = "2.8.3"
+navigationCompose = "2.8.4"
 runtimeLivedata = "1.7.5"
 googleGmsGoogleServices = "4.4.2"
 firebaseAuth = "23.1.0"
@@ -43,17 +46,19 @@ firebaseDatabase = "21.0.0"
 jetbrainsKotlinJvm = "2.0.21"
 kotlinpoet = "1.14.2"
 kotlinpoetKsp = "1.12.0"
-symbolProcessingApi = "2.0.0-1.0.21"
+symbolProcessingApi = "2.0.21-1.0.25"
 datastorePreferences = "1.1.1"
 nimbusJoseJwt = "9.40"
 okhttp = "4.12.0"
 appauth = "0.11.1"
 workRuntimeKtx = "2.10.0"
+composeMaterial3 = "1.0.0-alpha29"
 
 [libraries]
 accompanist-themeadapter-material3 = { module = "com.google.accompanist:accompanist-themeadapter-material3", version.ref = "accompanistThemeadapterMaterial3" }
 activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtxVersion" }
 androidx-compose-bom-v20240600 = { module = "androidx.compose:compose-bom", version.ref = "composeBomVersion" }
+androidx-connect-client-v110 = { module = "androidx.health.connect:connect-client", version = "1.1.0-alpha10" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-coordinatorlayout = { module = "androidx.coordinatorlayout:coordinatorlayout", version.ref = "coordinatorlayout" }
 androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
@@ -106,6 +111,7 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "symbolProcessingApi" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
+androidx-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

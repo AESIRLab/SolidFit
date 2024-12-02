@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.compiler) apply false
 
-    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
     application
 }
 
@@ -19,13 +19,13 @@ dependencies {
 }
 
 buildscript {
-    extra["kotlin_version"] = "2.0.0"
+    extra["kotlin_version"] = "1.9.10"
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath(kotlin("gradle-plugin", version = "2.0.0"))
+        classpath(kotlin("gradle-plugin", version = "1.9.10"))
     }
 }
 

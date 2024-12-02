@@ -3,11 +3,14 @@ package com.example.workoutsolidproject
 import com.solidannotations.WorkoutItemDatabase
 import com.solidannotations.WorkoutItemRepository
 import android.app.Application
+import com.example.workoutsolidproject.healthdata.HealthConnectManager
 
 //needed
 //val Context.dataStore: DataStore<Preferences> by preferencesDataStore("userData")
 class WorkoutItemSolidApplication: Application() {
-
+    val healthConnectManager by lazy {
+        HealthConnectManager(this)
+    }
     init {
         appInstance = this
     }

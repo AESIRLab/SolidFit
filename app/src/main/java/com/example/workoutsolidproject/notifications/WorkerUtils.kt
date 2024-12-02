@@ -34,7 +34,7 @@ fun showNotification(context: Context, title: String, message: String, channelId
     val notification = NotificationCompat.Builder(context, channelId)
         .setContentTitle(title)
         .setContentText(message)
-        .setSmallIcon(R.drawable.exercise_black_24px)
+        .setSmallIcon(R.drawable.exercise_black_46dp)
         .setContentIntent(pendingIntent)
         .setAutoCancel(true)
         .build()
