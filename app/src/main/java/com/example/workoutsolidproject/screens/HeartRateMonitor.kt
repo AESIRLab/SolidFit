@@ -5,35 +5,49 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.health.connect.client.records.WeightRecord
+import androidx.health.connect.client.units.Mass
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
+import com.example.workoutsolidproject.healthdata.dateTimeWithOffsetOrDefault
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,9 +56,12 @@ import java.util.UUID
 fun HeartRateMonitor(
     permissions: Set<String>,
     permissionsGranted: Boolean,
+    readingsList: List<WeightRecord>,
     uiState: InputReadingsViewModel.UiState,
+    onInsertClick: (Double) -> Unit = {},
     onError: (Throwable?) -> Unit = {},
     onPermissionsResult: () -> Unit = {},
+    weeklyAvg: Mass?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
     onCancel: () -> Unit
 ) {
@@ -67,6 +84,16 @@ fun HeartRateMonitor(
             onError(uiState.exception)
             errorId.value = uiState.uuid
         }
+    }
+
+    var weightInput by remember { mutableStateOf("") }
+
+    // Check if the input value is a valid weight
+    fun hasValidDoubleInRange(weight: String): Boolean {
+        val tempVal = weight.toDoubleOrNull()
+        return if (tempVal == null) {
+            false
+        } else tempVal <= 1000
     }
 
     Scaffold(
@@ -116,7 +143,7 @@ fun HeartRateMonitor(
                     shape = CircleShape,
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.exercise_black_24dp),
+                        painter = painterResource(id = R.drawable.exercise_black_thin_24dp),
                         contentDescription = "Heart Rate Monitor",
                         modifier = Modifier.size(30.dp)
                     )
@@ -128,7 +155,8 @@ fun HeartRateMonitor(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(innerPadding)
+                    .padding(20.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -136,17 +164,87 @@ fun HeartRateMonitor(
                     item {
                         Button(
                             onClick = { onPermissionsLaunch(permissions) },
-                            modifier = Modifier.padding(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(224f, 1f,0.73f))
                         ) {
-                            Log.d("Button Heart", "BUTTON!")
                             Text(text = stringResource(R.string.permissions_button_label))
                         }
                     }
                 }
                 else {
                     item {
-                        Text(text = "Permissions granted")
+                        OutlinedTextField(
+                            value = weightInput,
+                            onValueChange = {
+                                weightInput = it
+                            },
+                            label = {
+                                Text(stringResource(id = R.string.weight_input), color = Color.Black)
+                            },
+                            isError = !hasValidDoubleInRange(weightInput),
+                            keyboardActions = KeyboardActions { !hasValidDoubleInRange(weightInput) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                        if (!hasValidDoubleInRange(weightInput)) {
+                            Text(
+                                text = stringResource(id = R.string.valid_weight_error_message),
+                                color = Color.Black,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+
+                        Button(
+                            enabled = hasValidDoubleInRange(weightInput),
+                            onClick = {
+                                onInsertClick(weightInput.toDouble())
+                                // clear TextField when new weight is entered
+                                weightInput = ""
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
+                                224f,
+                                1f,
+                                0.73f
+                            )),
+
+                            modifier = Modifier.fillMaxHeight()
+
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.add_readings_button))
+                        }
+
+                        Text(
+                            text = stringResource(id = R.string.previous_readings),
+                            fontSize = 24.sp,
+                            color = Color.Black
+                        )
+                    }
+                    items(readingsList) { reading ->
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // show local date and time
+                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                            val zonedDateTime =
+                                dateTimeWithOffsetOrDefault(reading.time, reading.zoneOffset)
+                            Text(
+                                text = "${reading.weight}" + " ",
+                            )
+                            Text(text = formatter.format(zonedDateTime))
+                        }
+                    }
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.weekly_avg), fontSize = 24.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(vertical = 20.dp)
+                        )
+                        if (weeklyAvg == null) {
+                            Text(text = "0.0" + stringResource(id = R.string.kilograms))
+                        } else {
+                            Text(text = "$weeklyAvg".take(5) + stringResource(id = R.string.kilograms))
+                        }
                     }
                 }
             }

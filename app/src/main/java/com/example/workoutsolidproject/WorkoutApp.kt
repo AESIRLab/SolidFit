@@ -85,11 +85,10 @@ fun WorkoutApp(
 ) {
     Log.d("WORKOUTAPP", "Running WorkoutApp")
     val navController = rememberNavController()
-    val applicationCtx = LocalContext.current.applicationContext
     val repository = (LocalContext.current.applicationContext as WorkoutItemSolidApplication).repository
-    val viewModel = WorkoutItemViewModel(repository)
     val tokenStore = AuthTokenStore(LocalContext.current.applicationContext)
     val coroutineScope = rememberCoroutineScope()
+    // Used for HealthConnect error message
     val snackbarHostState = remember { SnackbarHostState() }
 
 
@@ -122,7 +121,7 @@ fun WorkoutApp(
                 )
             }
 
-            // SCREEN: The web id is unfetchable
+            // SCREEN: UnfetchableWebID
             composable(route = SolidAuthFlowScreen.UnfetchableWebIdScreen.name) {
                 UnfetchableWebIdScreen(tokenStore = tokenStore) { err ->
                     Handler(Looper.getMainLooper()).post {
@@ -156,9 +155,7 @@ fun WorkoutApp(
                                     duration = duration,
                                 )
                             )
-
                             saveWorkoutLog(context)
-
                             navController.navigate("WorkoutList")
                         }
                     },
@@ -170,6 +167,7 @@ fun WorkoutApp(
 
             // SCREEN: displays the list of workouts
             composable(route = SolidAuthFlowScreen.WorkoutList.name) {
+                // Fetches all workout items from repo
                 val workouts by repository.allWorkoutItems.collectAsState(initial = emptyList())
 
                 Scaffold(
@@ -210,16 +208,18 @@ fun WorkoutApp(
                                 .padding(start = 32.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
+                            // Navigates to HeartRateMonitor screen
                             FloatingActionButton(
                                 containerColor = Color.hsl(224f, 1f, 0.73f),
                                 onClick = { navController.navigate(route = SolidAuthFlowScreen.HeartRateMonitor.name) },
                                 shape = CircleShape,
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.vital_signs_24dp),
+                                    painter = painterResource(id = R.drawable.cardiology_24dp),
                                     contentDescription = "Heart Rate Monitor"
                                 )
                             }
+                            // Navigates to AddEditWorkoutScreen
                             FloatingActionButton(
                                 containerColor = Color.hsl(224f, 1f, 0.73f),
                                 onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
@@ -246,13 +246,11 @@ fun WorkoutApp(
                         WorkoutList(
                             workouts = workouts,
                             onDeleteWorkout = { workout ->
-                                Log.d("Delete workout ID", workout.id)
                                 coroutineScope.launch {
                                     repository.deleteByUri(workout.id)
                                 }
                             },
                             onEditWorkout = { workout ->
-                                Log.d("Edit workout ID", workout.id)
                                 navController.navigate(route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/${workout.id}")
                             }
                         )
@@ -291,6 +289,11 @@ fun WorkoutApp(
                     permissions = permissions,
 
                     uiState = viewModel.uiState,
+                    onInsertClick = { weightInput ->
+                        viewModel.inputReadings(weightInput)
+                    },
+                    weeklyAvg = weeklyAvg,
+                    readingsList = readingsList,
                     onError = { exception ->
                         showExceptionSnackbar(snackbarHostState, coroutineScope, exception)
                     },
@@ -344,11 +347,11 @@ fun WorkoutApp(
     }
 }
 
+// Saves current date - used to see if user has already logged workout for the day -> wont notify again
 fun saveWorkoutLog(context: Context) {
     val sharedPreferences = context.getSharedPreferences("workoutPrefs", Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
 
-    // Saves current date - used to see if user has already logged workout for the day -> wont notify again
     val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     editor.putString("lastWorkoutDate", todayDate)
     editor.apply()

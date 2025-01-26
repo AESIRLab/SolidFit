@@ -25,6 +25,8 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
   val permissions = setOf(
     HealthPermission.getReadPermission(HeartRateRecord::class),
     HealthPermission.getWritePermission(HeartRateRecord::class),
+    HealthPermission.getReadPermission(WeightRecord::class),
+    HealthPermission.getWritePermission(WeightRecord::class)
   )
   var weeklyAvg: MutableState<Mass?> = mutableStateOf(Mass.kilograms(0.0))
     private set
@@ -98,8 +100,7 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     object Uninitialized : UiState()
     object Done : UiState()
 
-    // A random UUID is used in each Error object to allow errors to be uniquely identified,
-    // and recomposition won't result in multiple snackbars.
+    // A random UUID is used in each Error object to allow errors to be uniquely identified, and recomposition won't result in multiple snackbars.
     data class Error(val exception: Throwable, val uuid: UUID = UUID.randomUUID()) : UiState()
   }
 }

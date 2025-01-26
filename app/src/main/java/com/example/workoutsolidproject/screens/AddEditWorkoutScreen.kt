@@ -125,7 +125,6 @@ fun AddEditWorkoutScreen(
                 }
                 // Save workout
                 Button(
-
                     colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
                         224f,
                         1f,

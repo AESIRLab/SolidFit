@@ -10,12 +10,15 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
+// TODO: NOTIFICATIONS ARE BROKEN D:
+
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d("BootReceiver", "Device booted, scheduling notification workers.")
+            Log.d("WORKOUT NOTIFICATIONS", "Device booted, scheduling notification workers.")
 
             // Schedules the daily notification and reset functions
+            Log.d("WORKOUT NOTIFICATIONS", "Calling scheduleDailyNotification")
             scheduleDailyNotification(context)
             scheduleDailyReset(context)
         }
@@ -35,17 +38,19 @@ class NotificationReceiver : BroadcastReceiver() {
             ExistingPeriodicWorkPolicy.UPDATE,
             dailyWorkRequest
         )
+        Log.d("WORKOUT NOTIFICATIONS", "Scheduled daily notification worker")
     }
 
     private fun calculateInitialDelay(): Long {
+        Log.d("WORKOUT NOTIFICATIONS", "enter calculateInitialDelay()")
         // TODO: After testing, ensure hour is back to 15; min & sec = 0
         // Every day at 3:00pm
-        val targetHour = 15
+        val targetHour = 12
         val now = java.util.Calendar.getInstance()
         val targetTime = java.util.Calendar.getInstance().apply {
             set(java.util.Calendar.HOUR_OF_DAY, targetHour)
-            set(java.util.Calendar.MINUTE, 0)
-            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MINUTE, 25)
+            set(java.util.Calendar.SECOND, 30)
             if (before(now)) add(java.util.Calendar.DAY_OF_YEAR, 1)
         }
         return targetTime.timeInMillis - now.timeInMillis
@@ -56,7 +61,6 @@ class NotificationReceiver : BroadcastReceiver() {
         // Schedules the reset worker to run every 24 hours
         val dailyResetRequest = PeriodicWorkRequestBuilder<DailyResetWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(calculateMidnightDelay(), TimeUnit.MILLISECONDS)
-//            .setInitialDelay(10, TimeUnit.MILLISECONDS)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(

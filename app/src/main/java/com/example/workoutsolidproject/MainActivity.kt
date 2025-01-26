@@ -19,17 +19,19 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.WeightRecord
 import com.example.workoutsolidproject.healthdata.BaseApplication
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         Log.d("MAIN ACTIVITY", "Before healthConnectManager initialization")
 
+        // Used to connect health connect object throughout the app
         val healthConnectManager = (application as WorkoutItemSolidApplication).healthConnectManager
 
+        // Requests notification permissions (shocker)
         requestNotificationPermission()
 
+        // Allows content to display behind device's status and navigation bar
         enableEdgeToEdge()
         setContent {
             WorkoutSolidProjectTheme {
