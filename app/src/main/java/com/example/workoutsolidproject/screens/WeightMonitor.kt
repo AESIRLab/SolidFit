@@ -1,7 +1,6 @@
 package com.example.workoutsolidproject.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -54,7 +53,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HeartRateMonitor(
+fun WeightMonitor(
     permissions: Set<String>,
     permissionsGranted: Boolean,
     readingsList: List<WeightRecord>,
@@ -116,7 +115,7 @@ fun HeartRateMonitor(
                         horizontalArrangement = Arrangement.SpaceBetween)
                     {
                         Text(
-                            "Heart Rate Monitor",
+                            "Weight Monitor",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -125,8 +124,6 @@ fun HeartRateMonitor(
                             painter = painterResource(id = R.drawable.exercise_white_34dp),
                             contentDescription = "App logo"
                         )
-                        Log.d("HEART RATE MONITOR", "Makes it past initialization")
-
                     }
                 }
             )
@@ -145,7 +142,7 @@ fun HeartRateMonitor(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.exercise_black_thin_24dp),
-                        contentDescription = "Heart Rate Monitor",
+                        contentDescription = "Weight Monitor",
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -174,7 +171,6 @@ fun HeartRateMonitor(
                 else {
                     item {
                         OutlinedTextField(
-                            modifier = Modifier.offset(y = (-30).dp),
                             value = weightInput,
                             onValueChange = {
                                 weightInput = it
@@ -193,7 +189,6 @@ fun HeartRateMonitor(
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier
                                     .padding(start = 16.dp)
-                                    .offset(y = (-28).dp)
                                 )
                         }
 
@@ -212,7 +207,6 @@ fun HeartRateMonitor(
 
                             modifier = Modifier
                                 .fillMaxHeight()
-                                .offset(y = (-28).dp)
                         ) {
                             Text(
                                 text = stringResource(id = R.string.add_readings_button))

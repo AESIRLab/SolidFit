@@ -55,7 +55,7 @@ import com.example.workoutsolidproject.healthdata.showExceptionSnackbar
 import com.example.workoutsolidproject.model.WorkoutItem
 import com.example.workoutsolidproject.screens.AddEditWorkoutScreen
 import com.example.workoutsolidproject.screens.AuthCompleteScreen
-import com.example.workoutsolidproject.screens.HeartRateMonitor
+import com.example.workoutsolidproject.screens.WeightMonitor
 import com.example.workoutsolidproject.screens.StartAuthScreen
 import com.example.workoutsolidproject.screens.UnfetchableWebIdScreen
 import com.solidannotations.AuthTokenStore
@@ -73,7 +73,7 @@ enum class SolidAuthFlowScreen {
     UnfetchableWebIdScreen,
     AuthCompleteScreen,
     StartAuthScreen,
-    HeartRateMonitor
+    WeightMonitor
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -208,15 +208,15 @@ fun WorkoutApp(
                                 .padding(start = 32.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            // Navigates to HeartRateMonitor screen
+                            // Navigates to WeightMonitor screen
                             FloatingActionButton(
                                 containerColor = Color.hsl(224f, 1f, 0.73f),
-                                onClick = { navController.navigate(route = SolidAuthFlowScreen.HeartRateMonitor.name) },
+                                onClick = { navController.navigate(route = SolidAuthFlowScreen.WeightMonitor.name) },
                                 shape = CircleShape,
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.cardiology_24dp),
-                                    contentDescription = "Heart Rate Monitor"
+                                    painter = painterResource(id = R.drawable.weight_24px),
+                                    contentDescription = "Weight Monitor"
                                 )
                             }
                             // Navigates to AddEditWorkoutScreen
@@ -259,7 +259,7 @@ fun WorkoutApp(
             }
 
             // SCREEN: Heart Rate Monitor
-            composable(route = SolidAuthFlowScreen.HeartRateMonitor.name) {
+            composable(route = SolidAuthFlowScreen.WeightMonitor.name) {
                 val viewModel: InputReadingsViewModel = viewModel(
                     factory = InputReadingsViewModelFactory(
                         healthConnectManager = healthConnectManager
@@ -284,7 +284,7 @@ fun WorkoutApp(
                     }
                 }
 
-                HeartRateMonitor(
+                WeightMonitor(
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
