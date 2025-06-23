@@ -28,7 +28,7 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     HealthPermission.getReadPermission(WeightRecord::class),
     HealthPermission.getWritePermission(WeightRecord::class)
   )
-  var weeklyAvg: MutableState<Mass?> = mutableStateOf(Mass.kilograms(0.0))
+  var weeklyAvg: MutableState<Mass?> = mutableStateOf(Mass.pounds(0.0))
     private set
 
   var permissionsGranted = mutableStateOf(false)

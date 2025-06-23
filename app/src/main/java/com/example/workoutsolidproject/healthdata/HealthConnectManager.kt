@@ -85,7 +85,7 @@ class HealthConnectManager(private val context: Context) {
   suspend fun writeWeightInput(weightInput: Double) {
     val time = ZonedDateTime.now().withNano(0)
     val weightRecord = WeightRecord(
-        weight = Mass.kilograms(weightInput),
+        weight = Mass.pounds(weightInput),
         time = time.toInstant(),
         zoneOffset = time.offset
     )

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -157,7 +158,7 @@ fun HeartRateMonitor(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(20.dp),
-                verticalArrangement = Arrangement.Top,
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (!permissionsGranted) {
@@ -173,6 +174,7 @@ fun HeartRateMonitor(
                 else {
                     item {
                         OutlinedTextField(
+                            modifier = Modifier.offset(y = (-30).dp),
                             value = weightInput,
                             onValueChange = {
                                 weightInput = it
@@ -189,8 +191,10 @@ fun HeartRateMonitor(
                                 text = stringResource(id = R.string.valid_weight_error_message),
                                 color = Color.Black,
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(start = 16.dp)
-                            )
+                                modifier = Modifier
+                                    .padding(start = 16.dp)
+                                    .offset(y = (-28).dp)
+                                )
                         }
 
                         Button(
@@ -206,8 +210,9 @@ fun HeartRateMonitor(
                                 0.73f
                             )),
 
-                            modifier = Modifier.fillMaxHeight()
-
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .offset(y = (-28).dp)
                         ) {
                             Text(
                                 text = stringResource(id = R.string.add_readings_button))
@@ -216,7 +221,8 @@ fun HeartRateMonitor(
                         Text(
                             text = stringResource(id = R.string.previous_readings),
                             fontSize = 24.sp,
-                            color = Color.Black
+                            color = Color.Black,
+                            modifier = Modifier.padding(vertical = 10.dp)
                         )
                     }
                     items(readingsList) { reading ->
@@ -225,12 +231,13 @@ fun HeartRateMonitor(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // show local date and time
-                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                             val zonedDateTime =
                                 dateTimeWithOffsetOrDefault(reading.time, reading.zoneOffset)
                             Text(
-                                text = "${reading.weight}" + " ",
-                            )
+                                text = "${"%.1f".format(reading.weight.inPounds)} lbs" + " - ",
+                                fontWeight = FontWeight.Medium,
+                                )
                             Text(text = formatter.format(zonedDateTime))
                         }
                     }
@@ -238,12 +245,12 @@ fun HeartRateMonitor(
                         Text(
                             text = stringResource(id = R.string.weekly_avg), fontSize = 24.sp,
                             color = Color.Black,
-                            modifier = Modifier.padding(vertical = 20.dp)
+                            modifier = Modifier.padding(top = 20.dp, bottom = 10.dp),
                         )
                         if (weeklyAvg == null) {
-                            Text(text = "0.0" + stringResource(id = R.string.kilograms))
+                            Text(text = "0.0" + stringResource(id = R.string.pounds))
                         } else {
-                            Text(text = "$weeklyAvg".take(5) + stringResource(id = R.string.kilograms))
+                            Text(text = "${weeklyAvg.inPounds}".take(5) + stringResource(id = R.string.pounds))
                         }
                     }
                 }

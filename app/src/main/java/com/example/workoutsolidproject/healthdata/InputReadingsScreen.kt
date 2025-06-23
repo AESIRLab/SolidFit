@@ -158,9 +158,9 @@ fun InputReadingsScreen(
             modifier = Modifier.padding(vertical = 20.dp)
           )
           if (weeklyAvg == null) {
-            Text(text = "0.0" + stringResource(id = R.string.kilograms))
+            Text(text = "0.0" + stringResource(id = R.string.pounds))
           } else {
-            Text(text = "$weeklyAvg".take(5) + stringResource(id = R.string.kilograms))
+            Text(text = "$weeklyAvg".take(5) + stringResource(id = R.string.pounds))
           }
         }
       }
@@ -175,16 +175,16 @@ fun InputReadingsScreenPreview() {
   WorkoutSolidProjectTheme(darkTheme = false) {
     InputReadingsScreen(
       permissions = setOf(),
-      weeklyAvg = Mass.kilograms(54.5),
+      weeklyAvg = Mass.pounds(54.5),
       permissionsGranted = true,
       readingsList = listOf(
         WeightRecord(
-          weight = Mass.kilograms(54.0),
+          weight = Mass.pounds(54.0),
           time = inputTime,
           zoneOffset = null
         ),
         WeightRecord(
-          weight = Mass.kilograms(55.0),
+          weight = Mass.pounds(55.0),
           time = inputTime,
           zoneOffset = null
         )
