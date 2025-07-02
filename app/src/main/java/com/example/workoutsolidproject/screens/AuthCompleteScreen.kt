@@ -5,19 +5,23 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.nimbusds.jwt.SignedJWT
-import com.solidannotations.AuthTokenStore
-import com.solidannotations.DPoPAuth
-import com.solidannotations.tokenRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.aesirlab.mylibrary.generateAuthString
+import org.aesirlab.mylibrary.generateDPoPKey
 import org.json.JSONObject
+import org.skCompiler.generatedModel.AuthTokenStore
+import org.aesirlab.mylibrary.sharedfunctions.buildTokenRequest
+import org.aesirlab.mylibrary.sharedfunctions.createUnsafeOkHttpClient
+import org.aesirlab.mylibrary.sharedfunctions.parseTokenResponseBody
+
 
 private const val TAG = "AuthCompleteScreen"
 @Composable
 fun AuthCompleteScreen(
     tokenStore: AuthTokenStore,
-    onFinishedAuth: () -> Unit,
+    onFinishedAuth: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = (context as Activity).intent
@@ -42,21 +46,34 @@ private suspend fun preliminaryAuth(tokenStore: AuthTokenStore, code: String?)  
         clientSecret = rClientSecret
     }
 
-    val authForm = DPoPAuth(tokenUri = tokenUrl)
-    val authString = authForm.generateAuthString("POST")
-    tokenStore.setSigner(authForm.key!!.toJSONObject().toString())
+    val dpop = generateDPoPKey()
 
-    val response = tokenRequest(
+//    val authForm = DPoPAuth(tokenUri = tokenUrl)
+//    val authString = authForm.generateAuthString("POST")
+//    tokenStore.setSigner(authForm.key!!.toJSONObject().toString())
+    val authString = generateAuthString("POST", tokenUrl, dpop)
+    tokenStore.setSigner(authString)
+//    val response = tokenRequest(
+//        clientId,
+//        clientSecret,
+//        tokenUrl,
+//        code!!,
+//        codeVerifier,
+//        redirectUri,
+//        authString
+//    )
+    val tokenRequest = buildTokenRequest(
         clientId,
-        clientSecret,
         tokenUrl,
-        code!!,
         codeVerifier,
         redirectUri,
-        authString
+        dpop,
+        clientSecret,
+        code!!
     )
-
-    val json = JSONObject(response)
+    val response = createUnsafeOkHttpClient().newCall(tokenRequest).execute()
+//    val responseDict = parseTokenResponseBody(response.body.)
+    val json = JSONObject(response.body!!.string())
     val accessToken = json.getString("access_token")
 
     val idToken: String

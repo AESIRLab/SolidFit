@@ -17,17 +17,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.solid_annotation.SolidAnnotation
+import com.zybooks.sksolidannotations.SolidAnnotation
+//import com.example.solid_annotation.SolidAnnotation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
 @SolidAnnotation(
-    "WorkoutItem",
-    "AndroidApplication/WorkoutApp",
+        "https://solidev.me/AndroidApplication/WorkoutApp",
     "http://www.w3.org/2024/ci/core#"
 )
 data class WorkoutItem(
@@ -63,12 +67,38 @@ fun WorkoutItem(
                     .padding(end = 16.dp)
             ){
                 Text(text = workout.name, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp))
-                Text(text = "Calories: ${workout.caloriesBurned}", fontSize = 15.sp)
-                Text(text = "Duration: ${workout.duration} minutes", fontSize = 15.sp)
-                Text(text = "Date: " +
-                        SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault()).format(
-                    Date(workout.date)
-                ), fontSize = 15.sp
+                Text(
+                    text = buildAnnotatedString {
+                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                            // Medium weight
+                            append("Calories: ")
+                        }
+                        // Normal weight
+                        append("${workout.caloriesBurned}")
+                    }
+                )
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                            // Medium weight
+                            append("Duration: ")
+                        }
+                        // Normal weight
+                        append("${workout.duration} minutes")
+                    }
+                )
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                            // Medium weight
+                            append("Date: ")
+                        }
+                        // Normal weight
+                        append(SimpleDateFormat("MM/dd/yyyy: hh:mm a", Locale.getDefault()).format(
+                            Date(workout.date)
+                        ))
+                    }
                 )
             }
 

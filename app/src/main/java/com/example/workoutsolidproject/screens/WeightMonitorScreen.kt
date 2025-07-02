@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -141,7 +140,7 @@ fun WeightMonitor(
                     shape = CircleShape,
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.exercise_black_thin_24dp),
+                        painter = painterResource(id = R.drawable.sprint_24px),
                         contentDescription = "Weight Monitor",
                         modifier = Modifier.size(30.dp)
                     )
@@ -227,7 +226,7 @@ fun WeightMonitor(
                             // show local date and time
                             val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                             val zonedDateTime =
-                                dateTimeWithOffsetOrDefault(reading.time, reading.zoneOffset)
+                                dateTimeWithOffsetOrDefault(reading.time,  reading.zoneOffset)
                             Text(
                                 text = "${"%.1f".format(reading.weight.inPounds)} lbs" + " - ",
                                 fontWeight = FontWeight.Medium,

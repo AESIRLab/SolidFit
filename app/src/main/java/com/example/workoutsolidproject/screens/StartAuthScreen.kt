@@ -26,12 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.StartButton
-import com.solidannotations.AuthTokenStore
-import com.solidannotations.fetchAuth
-import com.solidannotations.fetchConfig
-import com.solidannotations.fetchRegistration
-import com.solidannotations.okHttpGetRequest
-import com.solidannotations.setOidcProvider
+import com.example.workoutsolidproject.getUnsafeOkHttpClient
+import com.example.workoutsolidproject.okHttpRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +35,13 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import net.openid.appauth.CodeVerifierUtil
+import org.aesirlab.mylibrary.buildAuthorizationUrl
+import org.aesirlab.mylibrary.buildConfigRequest
+import org.aesirlab.mylibrary.buildRegistrationJSONBody
+import org.aesirlab.mylibrary.buildRegistrationRequest
+import org.aesirlab.mylibrary.getOidcProviderFromWebIdDoc
+import org.skCompiler.generatedModel.AuthTokenStore
+
 
 @Composable
 fun StartAuthScreen(
@@ -53,7 +56,7 @@ fun StartAuthScreen(
     ) {
         val appTitle = "Android Workout Tracker Solid"
         var webId by rememberSaveable {
-            mutableStateOf("")
+            mutableStateOf("https://id.inrupt.com/solidev")
         }
 
         Image(
@@ -77,11 +80,12 @@ fun StartAuthScreen(
             val redirectUris = listOf("app://www.solid-oidc.com/callback")
             CoroutineScope(Dispatchers.IO).launch {
 
+                val client = getUnsafeOkHttpClient()
                 tokenStore.setWebId(webId)
                 tokenStore.setRedirectUri(redirectUris[0])
                 val response: Response?
                 try {
-                    response = okHttpGetRequest(webId)
+                    response = okHttpRequest(webId)
                 } catch (e: Exception) {
                     onInvalidInput(e.message)
                     return@launch
@@ -92,10 +96,11 @@ fun StartAuthScreen(
                     return@launch
                 }
                 val data = response.body!!.string()
-                val oidcProvider = setOidcProvider(data)
+                val oidcProvider = getOidcProviderFromWebIdDoc(data)
                 tokenStore.setOidcProvider(oidcProvider)
 
-                val configResponse = fetchConfig(oidcProvider)
+                val configRequest = buildConfigRequest(oidcProvider)
+                val configResponse = client.newCall(configRequest).execute()
                 // needs 4xx error checking
                 val responseBody = configResponse.body!!.string()
                 val configJSON = JSONObject(responseBody)
@@ -106,7 +111,9 @@ fun StartAuthScreen(
 
                 tokenStore.setTokenUri(tokenEndpoint)
 
-                val registrationResponse = fetchRegistration(appTitle, registrationEndpoint, redirectUris)
+                val registrationBody = buildRegistrationJSONBody(appTitle, redirectUris)
+                val registrationRequest = buildRegistrationRequest(registrationEndpoint, registrationBody)
+                val registrationResponse = client.newCall(registrationRequest).execute()
                 val registrationString = registrationResponse.body!!.string()
 
                 val registrationJSON = JSONObject(registrationString)
@@ -126,8 +133,8 @@ fun StartAuthScreen(
 
                 tokenStore.setCodeVerifier(codeVerifier)
 
-                val httpUrl = fetchAuth(authUrl, clientId, clientSecret, codeVerifierChallenge, redirectUris[0])
-                val sendUri = Uri.parse(httpUrl.toString())
+                val authorizationUrl = buildAuthorizationUrl(authUrl, clientId, codeVerifierChallenge, redirectUris[0], clientSecret)
+                val sendUri = Uri.parse(authorizationUrl.toString())
                 context.startActivity(Intent(Intent.ACTION_VIEW, sendUri))
             }
         }

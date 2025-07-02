@@ -10,9 +10,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/app/solid-annotation" />
-            <option value="$PROJECT_DIR$/app/solid-auth" />
-            <option value="$PROJECT_DIR$/app/solid-processor" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

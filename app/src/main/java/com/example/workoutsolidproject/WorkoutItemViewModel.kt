@@ -1,37 +1,159 @@
 package com.example.workoutsolidproject
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-//import com.example.workoutroomproject.WorkoutItemRepository
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.workoutsolidproject.model.WorkoutItem
-import com.solidannotations.WorkoutItemRepository
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import org.skCompiler.generatedModel.WorkoutItemRemoteDataSource
+import org.skCompiler.generatedModel.WorkoutItemRepository
 
-class WorkoutItemViewModel(private val repository: WorkoutItemRepository): ViewModel() {
-    val allItems = repository.allWorkoutItems.asLiveData()
+class WorkoutItemViewModel(
+    private val repository: WorkoutItemRepository,
+    private val WorkoutItemRemoteDataSource: WorkoutItemRemoteDataSource
+): ViewModel() {
 
-    private lateinit var curWorkoutItem: LiveData<WorkoutItem>
+    private var _allItems: MutableStateFlow<List<WorkoutItem>> = MutableStateFlow(listOf())
+    val allItems: StateFlow<List<WorkoutItem>> get() = _allItems
 
-    private var updatedCounter = MutableLiveData(0)
+    private val _workoutItem = MutableStateFlow<WorkoutItem?>(null)
+    val workoutItem: StateFlow<WorkoutItem?> = _workoutItem
 
-    fun setUri(uri: String) {
-        val workoutLiveData = repository.getWorkoutItemLiveData(uri)
-        curWorkoutItem = workoutLiveData.asLiveData()
-    }
-
-    fun resetUpdatedCounter() {
-        runBlocking {
-            updatedCounter.value = 0
+    init {
+        this.viewModelScope.launch {
+            val newList = mutableListOf<WorkoutItem>()
+            try{
+                if (WorkoutItemRemoteDataSource.remoteAccessible()) {
+                    newList += WorkoutItemRemoteDataSource.fetchRemoteItemList()
+                }
+                repository.allWorkoutItemsAsFlow.collect { list ->
+                    newList += list
+                }
+                _allItems.value = newList.distinct()
+            } catch (e: NullPointerException) {
+                    Log.e("WorkoutViewModel", "Error loading RDF model: ${e.message}")
+                    _allItems.value = emptyList()
+            } catch (e: Exception) {
+                    Log.e("WorkoutViewModel", "Unexpected error: ${e.message}")
+                    _allItems.value = emptyList()
+            }
         }
     }
 
-    suspend fun delete(uri: String) {
-        coroutineScope {
-            repository.deleteByUri(uri)
-            updatedCounter.postValue(updatedCounter.value?.plus(1) ?: 1)
+
+    fun remoteIsAvailable(): Boolean {
+        return WorkoutItemRemoteDataSource.remoteAccessible()
+    }
+
+
+    fun setRemoteRepositoryData(
+        accessToken: String,
+        signingJwk: String,
+        webId: String,
+        expirationTime: Long,
+    ) {
+        WorkoutItemRemoteDataSource.signingJwk = signingJwk
+        WorkoutItemRemoteDataSource.webId = webId
+        WorkoutItemRemoteDataSource.expirationTime = expirationTime
+        WorkoutItemRemoteDataSource.accessToken = accessToken
+    }
+
+
+    suspend fun updateWebId(webId: String) {
+        viewModelScope.launch {
+            repository.insertWebId(webId)
+            repository.allWorkoutItemsAsFlow.collect { list ->
+                _allItems.value = list
+            }
+            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+        }
+    }
+
+
+    suspend fun insert(item: WorkoutItem) {
+        viewModelScope.launch {
+            repository.insert(item)
+            // not sure if this is the right way to do it...
+            repository.allWorkoutItemsAsFlow.collect { list ->
+                _allItems.value = list
+            }
+            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+//            WorkoutItemRemoteDataSource.updateRemoteItemList()
+        }
+    }
+
+
+    suspend fun insertMany(list: List<WorkoutItem>) {
+        viewModelScope.launch {
+            repository.insertMany(list)
+            repository.allWorkoutItemsAsFlow.collect { list ->
+                _allItems.value = list
+            }
+        }
+    }
+
+
+    suspend fun delete(item: WorkoutItem) {
+        viewModelScope.launch {
+            repository.deleteByUri(item.id)
+            repository.allWorkoutItemsAsFlow.collect { list ->
+                _allItems.value = list
+            }
+            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+//            WorkoutItemRemoteDataSource.updateRemoteItemList()
+        }
+    }
+
+
+    suspend fun updateRemote() {
+        viewModelScope.launch {
+            repository.allWorkoutItemsAsFlow.collect { list ->
+                _allItems.value = list
+            }
+            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+        }
+    }
+
+
+    suspend fun update(item: WorkoutItem) {
+        viewModelScope.launch {
+            repository.update(item)
+            repository.allWorkoutItemsAsFlow.collect { list ->
+                _allItems.value = list
+            }
+            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+        }
+    }
+
+    fun loadWorkoutByUri(uri: String) {
+        viewModelScope.launch {
+            // Call the suspend function safely inside the ViewModel's coroutine scope
+            repository.getWorkoutItemLiveData(uri).collect { item ->
+                // Update the StateFlow with the new data
+                _workoutItem.value = item
+            }
+        }
+    }
+
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as WorkoutItemSolidApplication)
+                val itemRepository = application.repository
+                val itemRemoteDataSource = WorkoutItemRemoteDataSource(externalScope = CoroutineScope(SupervisorJob() + Dispatchers.Default))
+                WorkoutItemViewModel(itemRepository, itemRemoteDataSource)
+            }
         }
     }
 }

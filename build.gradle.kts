@@ -12,12 +12,6 @@ plugins {
     application
 }
 
-dependencies {
-    implementation(project(":app:solid-annotation"))
-    ksp(project(":app:solid-processor"))
-    ksp(project(":app:solid-auth"))
-}
-
 buildscript {
     extra["kotlin_version"] = "1.9.10"
     repositories {

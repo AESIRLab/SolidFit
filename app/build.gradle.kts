@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.workoutsolidproject"
-        minSdk = 26
+        minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -76,15 +76,8 @@ android {
         }
     }
 }
-
+val version = "0.0.49"
 dependencies {
-    // Needed for jar file implementation
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-
-    implementation(project(":app:solid-annotation"))
-    implementation(libs.androidx.compose.material3)
-    ksp(project(":app:solid-processor"))
-    ksp(project(":app:solid-auth"))
 
     // jwt creation
     implementation(libs.nimbus.jose.jwt)
@@ -102,6 +95,12 @@ dependencies {
     // jwt utils
     implementation(libs.appauth)
 
+    ksp("com.squareup:kotlinpoet:1.14.0")
+    ksp("com.squareup:kotlinpoet-ksp:1.12.0")
+
+    implementation("org.aesirlab:sksolidannotations:$version")
+    ksp("org.aesirlab:skannotationscompiler:$version")
+    implementation("org.aesirlab:authlib:$version")
 
     debugImplementation(libs.androidx.ui.test.manifest)
     ///////////////////////////////////////////////////////////////
