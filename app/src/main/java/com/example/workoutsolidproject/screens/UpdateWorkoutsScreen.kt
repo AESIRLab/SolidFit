@@ -19,6 +19,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,11 +42,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.workoutsolidproject.BottomNavItem
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.SolidAuthFlowScreen
 import com.example.workoutsolidproject.WorkoutItemViewModel
@@ -61,7 +67,6 @@ import org.skCompiler.generatedModel.AuthTokenStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -69,8 +74,9 @@ import java.util.UUID
 fun UpdateWorkouts(
     healthConnectManager: HealthConnectManager,
 ) {
-    Log.d("DEBUG", "Entered UpdateWorkouts()")
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
     val viewModel: WorkoutItemViewModel = viewModel(
         factory = WorkoutItemViewModel.Factory
     )
@@ -78,6 +84,11 @@ fun UpdateWorkouts(
     val store = AuthTokenStore(LocalContext.current.applicationContext)
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val navBarItems = listOf(
+        BottomNavItem.WorkoutList,
+        BottomNavItem.HeartMonitor,
+        BottomNavItem.WeightMonitor,
+    )
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         runBlocking {
@@ -147,6 +158,26 @@ fun UpdateWorkouts(
                             }
                         )
                     },
+                    bottomBar = {
+                        NavigationBar {
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val currentDestination = navBackStackEntry?.destination
+                            navBarItems.forEach { screen ->
+                                NavigationBarItem(
+                                    icon = { Icon(screen.icon, contentDescription = screen.title) },
+                                    label = { Text(screen.title) },
+                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    },
                     floatingActionButton = {
                         Row(
                             modifier = Modifier
@@ -154,28 +185,19 @@ fun UpdateWorkouts(
                                 .padding(start = 32.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            // Navigates to WeightMonitor screen
-                            FloatingActionButton(
-                                containerColor = Color.hsl(224f, 1f, 0.73f),
-                                onClick = { navController.navigate(route = SolidAuthFlowScreen.WeightMonitor.name) },
-                                shape = CircleShape,
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.weight_24px),
-                                    contentDescription = "Weight Monitor"
-                                )
-                            }
-                            // Navigates to AddEditWorkoutScreen
-                            FloatingActionButton(
-                                containerColor = Color.hsl(224f, 1f, 0.73f),
-                                onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
-                                shape = CircleShape,
-                            ) {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    contentDescription = "Add workout",
-                                    modifier = Modifier.size(25.dp)
-                                )
+                            // This will only show the FAB on the WorkoutList screen
+                            if (currentDestination?.route == SolidAuthFlowScreen.WorkoutList.name) {
+                                FloatingActionButton(
+                                    containerColor = Color.hsl(224f, 1f, 0.73f),
+                                    onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
+                                    shape = CircleShape,
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Add,
+                                        contentDescription = "Add workout",
+                                        modifier = Modifier.size(25.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -271,9 +293,9 @@ fun UpdateWorkouts(
                     )
                 )
                 val permissionsGranted by viewModel.permissionsGranted
-                val readingsList by viewModel.readingsList
+                val readingsList by viewModel.weightReadingsList
                 val permissions = viewModel.permissions
-                val weeklyAvg by viewModel.weeklyAvg
+                val weeklyAvg by viewModel.weightWeeklyAvg
                 val onPermissionsResult = { viewModel.initialLoad() }
                 val permissionsLauncher =
                     rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
@@ -309,7 +331,56 @@ fun UpdateWorkouts(
                         permissionsLauncher.launch(values)
                     },
                     onCancel = {
-                        navController.navigate("WorkoutList")
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // SCREEN: Heart Rate Monitor
+            composable(route = SolidAuthFlowScreen.HeartRateMonitor.name) {
+                val viewModel: InputReadingsViewModel = viewModel(
+                    factory = InputReadingsViewModelFactory(
+                        healthConnectManager = healthConnectManager
+                    )
+                )
+                val permissionsGranted by viewModel.permissionsGranted
+                val readingsList by viewModel.heartReadingsList
+                val permissions = viewModel.permissions
+                val weeklyAvg by viewModel.heartWeeklyAvg
+                val onPermissionsResult = { viewModel.initialLoad() }
+                val permissionsLauncher =
+                    rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
+                        onPermissionsResult()
+                    }
+
+                // Trigger `initialLoad` if the UI state is Uninitialized
+                LaunchedEffect(viewModel.uiState) {
+                    if (viewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
+                        viewModel.initialLoad()
+                    }
+                }
+
+                HeartRateMonitor(
+                    permissionsGranted = permissionsGranted,
+                    permissions = permissions,
+
+                    uiState = viewModel.uiState,
+                    onInsertClick = { weightInput ->
+                        viewModel.inputReadings(weightInput)
+                    },
+                    weeklyAvg = weeklyAvg,
+                    readingsList = readingsList,
+                    onError = { exception ->
+                        showExceptionSnackbar(snackbarHostState, coroutineScope, exception)
+                    },
+                    onPermissionsResult = {
+                        viewModel.initialLoad()
+                    },
+                    onPermissionsLaunch = { values ->
+                        permissionsLauncher.launch(values)
+                    },
+                    onCancel = {
+                        navController.popBackStack()
                     }
                 )
             }

@@ -1,42 +1,32 @@
 package com.example.workoutsolidproject
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.example.workoutsolidproject.healthdata.HealthConnectManager
-import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
-import com.example.workoutsolidproject.healthdata.InputReadingsViewModelFactory
-import com.example.workoutsolidproject.healthdata.showExceptionSnackbar
 import com.example.workoutsolidproject.screens.AuthCompleteScreen
 import com.example.workoutsolidproject.screens.StartAuthScreen
 import com.example.workoutsolidproject.screens.UnfetchableWebIdScreen
 import com.example.workoutsolidproject.screens.UpdateWorkouts
-import com.example.workoutsolidproject.screens.WeightMonitor
+import com.hp.hpl.jena.sparql.modify.op.Update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.skCompiler.generatedModel.AuthTokenStore
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 
 // All apps screens
@@ -46,7 +36,27 @@ enum class SolidAuthFlowScreen {
     UnfetchableWebIdScreen,
     AuthCompleteScreen,
     StartAuthScreen,
+    HeartRateMonitor,
     WeightMonitor
+}
+
+
+sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
+    data object WorkoutList : BottomNavItem(
+        route = SolidAuthFlowScreen.WorkoutList.name,
+        title = "Workout List",
+        icon = Icons.AutoMirrored.Filled.List
+    )
+    data object HeartMonitor : BottomNavItem(
+        route = SolidAuthFlowScreen.HeartRateMonitor.name,
+        title = "Heart Rate Monitor",
+        icon = Icons.Default.Favorite
+    )
+    data object WeightMonitor: BottomNavItem(
+        route = SolidAuthFlowScreen.WeightMonitor.name,
+        title = "Weight Monitor",
+        icon = Icons.Default.Person
+    )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -54,7 +64,6 @@ enum class SolidAuthFlowScreen {
 fun WorkoutApp(
     healthConnectManager: HealthConnectManager,
 ) {
-    Log.d("WORKOUTAPP", "Running WorkoutApp")
 
     val navController = rememberNavController()
     val tokenStore = AuthTokenStore(LocalContext.current.applicationContext)

@@ -12,7 +12,6 @@ import androidx.health.connect.client.units.Mass
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.workoutsolidproject.healthdata.HealthConnectManager
 import java.io.IOException
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -28,13 +27,19 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     HealthPermission.getReadPermission(WeightRecord::class),
     HealthPermission.getWritePermission(WeightRecord::class)
   )
-  var weeklyAvg: MutableState<Mass?> = mutableStateOf(Mass.pounds(0.0))
+  var weightWeeklyAvg: MutableState<Mass?> = mutableStateOf(Mass.pounds(0.0))
+    private set
+
+  var heartWeeklyAvg: MutableState<Double?> = mutableStateOf(0.0)
     private set
 
   var permissionsGranted = mutableStateOf(false)
     private set
 
-  var readingsList: MutableState<List<WeightRecord>> = mutableStateOf(listOf())
+  var weightReadingsList: MutableState<List<WeightRecord>> = mutableStateOf(listOf())
+    private set
+
+  var heartReadingsList: MutableState<List<HeartRateRecord>> = mutableStateOf(listOf())
     private set
 
   var uiState: UiState by mutableStateOf(UiState.Uninitialized)
@@ -63,8 +68,8 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
     val now = Instant.now()
     val endofWeek = startOfDay.toInstant().plus(7, ChronoUnit.DAYS)
-    readingsList.value = healthConnectManager.readWeightInputs(startOfDay.toInstant(), now)
-    weeklyAvg.value =
+    weightReadingsList.value = healthConnectManager.readWeightInputs(startOfDay.toInstant(), now)
+    weightWeeklyAvg.value =
       healthConnectManager.computeWeeklyAverage(startOfDay.toInstant(), endofWeek)
   }
 

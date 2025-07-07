@@ -4,22 +4,17 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,34 +32,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.health.connect.client.records.WeightRecord
-import androidx.health.connect.client.units.Mass
+import androidx.health.connect.client.records.HeartRateRecord
+import androidx.navigation.compose.rememberNavController
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.SolidAuthFlowScreen
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
-import com.example.workoutsolidproject.healthdata.dateTimeWithOffsetOrDefault
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun WeightMonitor(
+fun HeartRateMonitor(
     permissions: Set<String>,
     permissionsGranted: Boolean,
-    readingsList: List<WeightRecord>,
+    readingsList: List<HeartRateRecord>,
     uiState: InputReadingsViewModel.UiState,
     onInsertClick: (Double) -> Unit = {},
     onError: (Throwable?) -> Unit = {},
     onPermissionsResult: () -> Unit = {},
-    weeklyAvg: Mass?,
+    // TODO: Likely need to change datatype of weeklyAvg
+    weeklyAvg: Double?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
     onCancel: () -> Unit
 ) {
+    val navController = rememberNavController()
+
 
     // Remember the last error ID, such that it is possible to avoid re-launching the error
     // notification for the same error when the screen is recomposed, or configuration changes etc.
@@ -86,15 +80,9 @@ fun WeightMonitor(
         }
     }
 
-    var weightInput by remember { mutableStateOf("") }
+    var heartInput by remember { mutableStateOf("") }
 
-    // Check if the input value is a valid weight
-    fun hasValidDoubleInRange(weight: String): Boolean {
-        val tempVal = weight.toDoubleOrNull()
-        return if (tempVal == null) {
-            false
-        } else tempVal <= 1000
-    }
+// TODO: Implement auto reading of heart rate from sensor
 
     Scaffold(
         // Bar at the top of the screen
@@ -115,7 +103,7 @@ fun WeightMonitor(
                         horizontalArrangement = Arrangement.SpaceBetween)
                     {
                         Text(
-                            "Weight Monitor",
+                            "Heart Rate Monitor",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -128,7 +116,6 @@ fun WeightMonitor(
                 }
             )
         },
-
         floatingActionButton = {
             Row(
                 modifier = Modifier
@@ -170,82 +157,32 @@ fun WeightMonitor(
                     }
                 }
                 else {
-                    item {
-                        OutlinedTextField(
-                            value = weightInput,
-                            onValueChange = {
-                                weightInput = it
-                            },
-                            label = {
-                                Text(stringResource(id = R.string.weight_input), color = Color.Black)
-                            },
-                            isError = !hasValidDoubleInRange(weightInput),
-                            keyboardActions = KeyboardActions { !hasValidDoubleInRange(weightInput) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        if (!hasValidDoubleInRange(weightInput)) {
-                            Text(
-                                text = stringResource(id = R.string.valid_weight_error_message),
-                                color = Color.Black,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier
-                                    .padding(start = 16.dp)
-                                )
-                        }
-
-                        Button(
-                            enabled = hasValidDoubleInRange(weightInput),
-                            onClick = {
-                                onInsertClick(weightInput.toDouble())
-                                // clear TextField when new weight is entered
-                                weightInput = ""
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
-                                224f,
-                                1f,
-                                0.73f
-                            )),
-
-                            modifier = Modifier
-                                .fillMaxHeight()
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.add_readings_button))
-                        }
-
-                        Text(
-                            text = stringResource(id = R.string.previous_readings),
-                            fontSize = 24.sp,
-                            color = Color.Black,
-                            modifier = Modifier.padding(vertical = 10.dp)
-                        )
-                    }
-                    items(readingsList) { reading ->
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // show local date and time
-                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                            val zonedDateTime =
-                                dateTimeWithOffsetOrDefault(reading.time,  reading.zoneOffset)
-                            Text(
-                                text = "${"%.1f".format(reading.weight.inPounds)} lbs" + " - ",
-                                fontWeight = FontWeight.Medium,
-                                )
-                            Text(text = formatter.format(zonedDateTime))
-                        }
-                    }
+//                    items(readingsList) { reading ->
+//                        Row(
+//                            horizontalArrangement = Arrangement.SpaceEvenly,
+//                            verticalAlignment = Alignment.CenterVertically
+//                        ) {
+//                            // show local date and time
+//                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+//                            val zonedDateTime =
+//                                dateTimeWithOffsetOrDefault(reading.time,  reading.zoneOffset)
+//                            Text(
+//                                text = "${"%.1f".format(reading.weight.inPounds)} lbs" + " - ",
+//                                fontWeight = FontWeight.Medium,
+//                            )
+//                            Text(text = formatter.format(zonedDateTime))
+//                        }
+//                    }
                     item {
                         Text(
                             text = stringResource(id = R.string.weekly_avg), fontSize = 24.sp,
                             color = Color.Black,
                             modifier = Modifier.padding(top = 20.dp, bottom = 10.dp),
                         )
-                        if (weeklyAvg == null) {
-                            Text(text = "0.0" + stringResource(id = R.string.pounds))
+                        if (weeklyAvg == null || weeklyAvg == 0.0) {
+                            Text(text = "0.0 BPM")
                         } else {
-                            Text(text = "${weeklyAvg.inPounds}".take(5) + stringResource(id = R.string.pounds))
+                            Text(text = "%.1f BPM".format(weeklyAvg))
                         }
                     }
                 }
