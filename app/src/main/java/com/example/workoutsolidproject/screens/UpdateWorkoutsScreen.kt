@@ -331,9 +331,6 @@ fun UpdateWorkouts(
                     onPermissionsLaunch = { values ->
                         permissionsLauncher.launch(values)
                     },
-                    onCancel = {
-                        navController.popBackStack()
-                    }
                 )
             }
 
@@ -367,10 +364,10 @@ fun UpdateWorkouts(
                     permissions = permissions,
 
                     uiState = viewModel.uiState,
-                    onInsertClick = { weightInput ->
-                        viewModel.inputReadings(weightInput)
+                    onInsertClick = { bpm ->
+                        viewModel.inputHeartRate(bpm)
                     },
-                    weeklyAvg = weeklyAvg,
+//                    weeklyAvg = weeklyAvg,
                     readingsList = readingsList,
                     onError = { exception ->
                         showExceptionSnackbar(snackbarHostState, coroutineScope, exception)
@@ -381,9 +378,6 @@ fun UpdateWorkouts(
                     onPermissionsLaunch = { values ->
                         permissionsLauncher.launch(values)
                     },
-                    onCancel = {
-                        navController.popBackStack()
-                    }
                 )
             }
         }

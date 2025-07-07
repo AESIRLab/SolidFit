@@ -7,12 +7,13 @@
     <string name="delete_button_readings">Delete</string>
     <string name="weight_input">New Record (Lbs)</string>
     <string name="add_readings_button">Add</string>
-    <string name="previous_readings"> Previous Measurements </string>
-    <string name="weekly_avg"> Weekly Average </string>
+    <string name="previous_readings">Previous Measurements</string>
+    <string name="weekly_avg">Weekly Average</string>
+    <string name="current_bpm">Current BPM:</string>
     <string name="kilograms">kgs\u0020</string>
     <string name="pounds">lbs\u0020</string>
     <string name="bpm">BPM\u0020</string>
-    <string name="valid_weight_error_message"> Weight must be between 0 and 1000</string>
+    <string name="valid_weight_error_message">Weight must be between 0 and 1000</string>
 
     <!-- Not supported on device -->
     <string name="not_supported_tag">not_supported_tag</string>

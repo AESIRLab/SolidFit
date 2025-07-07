@@ -72,7 +72,7 @@ fun WeightMonitor(
     onPermissionsResult: () -> Unit = {},
     weeklyAvg: Mass?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
-) {
+  ) {
 
     val navBarItems = listOf(
         BottomNavItem.WorkoutList,

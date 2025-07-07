@@ -14,24 +14,18 @@ import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.Record
-import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
 import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 // The minimum android level that can use Health Connect
@@ -79,9 +73,8 @@ class HealthConnectManager(private val context: Context) {
     return PermissionController.createRequestPermissionResultContract()
   }
 
-  /**
-   * TODO: Writes [WeightRecord] to Health Connect.
-   */
+
+  // Writes WeightRecord to Health Connect.
   suspend fun writeWeightInput(weightInput: Double) {
     val time = ZonedDateTime.now().withNano(0)
     val weightRecord = WeightRecord(
@@ -98,9 +91,7 @@ class HealthConnectManager(private val context: Context) {
     }
   }
 
-  /**
-   * TODO: Reads in existing [WeightRecord]s.
-   */
+  // Reads in existing WeightRecords
   suspend fun readWeightInputs(start: Instant, end: Instant): List<WeightRecord> {
     val request = ReadRecordsRequest(
       recordType = WeightRecord::class,
@@ -110,9 +101,7 @@ class HealthConnectManager(private val context: Context) {
     return response.records
   }
 
-  /**
-   * TODO: Returns the weekly average of [WeightRecord]s.
-   */
+  // Returns the weekly average of WeightRecords.
   suspend fun computeWeeklyAverage(start: Instant, end: Instant): Mass? {
     val request = AggregateRequest(
       metrics = setOf(WeightRecord.WEIGHT_AVG),
@@ -122,10 +111,37 @@ class HealthConnectManager(private val context: Context) {
     return response[WeightRecord.WEIGHT_AVG]
   }
 
+  suspend fun writeHeartRateInput(bpm: Double) {
+    val nowZdt = ZonedDateTime.now().withNano(0)
+    val sample = HeartRateRecord.Sample(
+      time = nowZdt.toInstant(),
+      beatsPerMinute = bpm.toLong()
+    )
+    val record = HeartRateRecord(
+      startTime         = nowZdt.toInstant(),
+      startZoneOffset   = nowZdt.offset,
+      endTime           = nowZdt.toInstant(),
+      endZoneOffset     = nowZdt.offset,
+      samples           = listOf(sample)
+    )
+    try {
+      healthConnectClient.insertRecords(listOf(record))
+//      Toast.makeText(context, "Inserted heart rate: ${bpm.toInt()} BPM", Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+      Toast.makeText(context, "Error inserting HR: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+  }
 
-  /**
-   * TODO: Build [HeartRateRecord].
-   */
+  /** Reads all HeartRateRecord samples between start and end. */
+  suspend fun readHeartRateInputs(start: Instant, end: Instant): List<HeartRateRecord> {
+    val req = ReadRecordsRequest(
+      recordType      = HeartRateRecord::class,
+      timeRangeFilter = TimeRangeFilter.between(start, end)
+    )
+    return healthConnectClient.readRecords(req).records
+  }
+
+  // Builds HeartRateRecord
   private fun buildHeartRateSeries(
     sessionStartTime: ZonedDateTime,
     sessionEndTime: ZonedDateTime,

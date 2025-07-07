@@ -1,6 +1,12 @@
 package com.example.workoutsolidproject.screens
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -23,7 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,11 +40,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -46,9 +56,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.workoutsolidproject.BottomNavItem
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.SolidAuthFlowScreen
+import com.example.workoutsolidproject.healthdata.HeartRateBleManager
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
 import java.util.UUID
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -62,9 +74,54 @@ fun HeartRateMonitor(
     onError: (Throwable?) -> Unit = {},
     onPermissionsResult: () -> Unit = {},
     // TODO: Likely need to change datatype of weeklyAvg
-    weeklyAvg: Double?,
+//    weeklyAvg: Double?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
 ) {
+    val context = LocalContext.current
+
+    val currentBpm = rememberSaveable { mutableStateOf<Int?>(null) }
+
+    val scanPerm = Manifest.permission.BLUETOOTH_SCAN
+    val connectPerm = Manifest.permission.BLUETOOTH_CONNECT
+
+    val bluetoothLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { }
+
+    val scanGranted by remember {
+        derivedStateOf {
+            ContextCompat.checkSelfPermission(context, scanPerm) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+    val connectGranted by remember {
+        derivedStateOf {
+            ContextCompat.checkSelfPermission(context, connectPerm) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        if (!scanGranted || !connectGranted) {
+            bluetoothLauncher.launch(arrayOf(scanPerm, connectPerm))
+        }
+    }
+
+    val bleManager = remember {
+        HeartRateBleManager(context) { bpm ->
+            currentBpm.value = bpm
+            onInsertClick(bpm.toDouble())
+        }
+    }
+
+    LaunchedEffect(permissionsGranted, scanGranted, connectGranted) {
+        if (permissionsGranted && scanGranted && connectGranted) {
+            bleManager.startScan()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { bleManager.stop() }
+    }
 
     val navBarItems = listOf(
         BottomNavItem.WorkoutList,
@@ -81,20 +138,26 @@ fun HeartRateMonitor(
         if (uiState is InputReadingsViewModel.UiState.Uninitialized) {
             onPermissionsResult()
         }
-
         // The [InputReadingsScreenViewModel.UiState] provides details of whether the last action
         // was a success or resulted in an error. Where an error occurred, for example in reading
         // and writing to Health Connect, the user is notified, and where the error is one that can
         // be recovered from, an attempt to do so is made.
-        if (uiState is InputReadingsViewModel.UiState.Error && errorId.value != uiState.uuid) {
+        else if (uiState is InputReadingsViewModel.UiState.Error && errorId.value != uiState.uuid) {
             onError(uiState.exception)
             errorId.value = uiState.uuid
         }
     }
 
-    var heartInput by remember { mutableStateOf("") }
+    LaunchedEffect(permissionsGranted) {
+        if (permissionsGranted) {
+            bleManager.startScan()
+        }
+    }
 
-// TODO: Implement auto reading of heart rate from sensor
+    // stop scanning when leaving screen
+    DisposableEffect(Unit) {
+        onDispose { bleManager.stop() }
+    }
 
     Scaffold(
         // Bar at the top of the screen
@@ -168,39 +231,41 @@ fun HeartRateMonitor(
                     item {
                         Button(
                             onClick = { onPermissionsLaunch(permissions) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(224f, 1f,0.73f))
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.hsl(224f, 1f,0.73f)
+                            )
                         ) {
                             Text(text = stringResource(R.string.permissions_button_label))
                         }
                     }
                 }
                 else {
-//                    items(readingsList) { reading ->
-//                        Row(
-//                            horizontalArrangement = Arrangement.SpaceEvenly,
-//                            verticalAlignment = Alignment.CenterVertically
-//                        ) {
-//                            // show local date and time
-//                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-//                            val zonedDateTime =
-//                                dateTimeWithOffsetOrDefault(reading.time,  reading.zoneOffset)
-//                            Text(
-//                                text = "${"%.1f".format(reading.weight.inPounds)} lbs" + " - ",
-//                                fontWeight = FontWeight.Medium,
-//                            )
-//                            Text(text = formatter.format(zonedDateTime))
-//                        }
-//                    }
+                    // Current BPM
                     item {
-                        Text(
-                            text = stringResource(id = R.string.weekly_avg), fontSize = 24.sp,
-                            color = Color.Black,
-                            modifier = Modifier.padding(top = 20.dp, bottom = 10.dp),
-                        )
-                        if (weeklyAvg == null || weeklyAvg == 0.0) {
-                            Text(text = "0.0 BPM")
-                        } else {
-                            Text(text = "%.1f BPM".format(weeklyAvg))
+                        if (currentBpm.value == null) {
+                            Text(
+                                text = "Searching...",
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black,
+                                modifier = Modifier.padding(vertical = 16.dp)
+                            )
+                        }
+                        else {
+                            Text(
+                                text = stringResource(id = R.string.current_bpm),
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                modifier = Modifier.padding(top = 20.dp, bottom = 10.dp),
+                            )
+                            Text(
+                                text = currentBpm.value.let { "$it BPM" },
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black,
+                                modifier = Modifier.padding(vertical = 16.dp)
+                            )
                         }
                     }
                 }

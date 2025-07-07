@@ -51,6 +51,7 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     viewModelScope.launch {
       tryWithPermissionsCheck {
         readWeightInputs()
+        readHeartRateInputs()
       }
     }
   }
@@ -62,6 +63,21 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
         readWeightInputs()
       }
     }
+  }
+
+  fun inputHeartRate(bpm: Double) {
+    viewModelScope.launch {
+      tryWithPermissionsCheck {
+        healthConnectManager.writeHeartRateInput(bpm)
+        readHeartRateInputs()
+      }
+    }
+  }
+
+  private suspend fun readHeartRateInputs() {
+    val startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).toInstant()
+    val now = Instant.now()
+    heartReadingsList.value = healthConnectManager.readHeartRateInputs(startOfDay,now)
   }
 
   private suspend fun readWeightInputs() {
