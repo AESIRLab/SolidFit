@@ -312,6 +312,7 @@ fun UpdateWorkouts(
                 }
 
                 WeightMonitor(
+                    navController = navController,
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
@@ -361,6 +362,7 @@ fun UpdateWorkouts(
                 }
 
                 HeartRateMonitor(
+                    navController = navController,
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 

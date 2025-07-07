@@ -18,7 +18,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.units.Mass
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.workoutsolidproject.BottomNavItem
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.SolidAuthFlowScreen
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
@@ -54,6 +62,7 @@ import java.util.UUID
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun WeightMonitor(
+    navController: NavHostController,
     permissions: Set<String>,
     permissionsGranted: Boolean,
     readingsList: List<WeightRecord>,
@@ -63,8 +72,13 @@ fun WeightMonitor(
     onPermissionsResult: () -> Unit = {},
     weeklyAvg: Mass?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
-    onCancel: () -> Unit
 ) {
+
+    val navBarItems = listOf(
+        BottomNavItem.WorkoutList,
+        BottomNavItem.HeartMonitor,
+        BottomNavItem.WeightMonitor,
+    )
 
     // Remember the last error ID, such that it is possible to avoid re-launching the error
     // notification for the same error when the screen is recomposed, or configuration changes etc.
@@ -128,27 +142,32 @@ fun WeightMonitor(
                 }
             )
         },
+        bottomBar = {
+            NavigationBar {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
 
-        floatingActionButton = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                FloatingActionButton(
-                    containerColor = Color.hsl(224f, 1f, 0.73f),
-                    onClick = onCancel,
-                    shape = CircleShape,
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.sprint_24px),
-                        contentDescription = "Heart Rate Monitor",
-                        modifier = Modifier.size(30.dp)
+                navBarItems.forEach { screen ->
+                    NavigationBarItem(
+                        icon = { Icon(screen.icon, contentDescription = screen.title) },
+                        label = { Text(screen.title) },
+                        selected = currentDestination
+                            ?.hierarchy
+                            ?.any { it.route == screen.route } == true,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
             }
         }
+
     ) { innerPadding ->
         if (uiState != InputReadingsViewModel.UiState.Uninitialized) {
             LazyColumn(
