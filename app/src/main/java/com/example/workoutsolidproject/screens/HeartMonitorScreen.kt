@@ -246,7 +246,7 @@ fun HeartRateMonitor(
                             Text(
                                 text = "Searching...",
                                 fontSize = 30.sp,
-                                fontWeight = FontWeight.Medium,
+                                fontWeight = FontWeight.Normal,
                                 color = Color.Black,
                                 modifier = Modifier.padding(vertical = 16.dp)
                             )

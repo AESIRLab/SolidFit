@@ -70,8 +70,8 @@ fun AddEditWorkoutScreen(
                     )
                     Image(
                         painter = painterResource(id = R.drawable.exercise_white_34dp),
-                        contentDescription = "App logo"
-                    )
+                        contentDescription = "App logo",
+                        )
                 }
             }
         )
