@@ -11,7 +11,6 @@ import com.example.workoutsolidproject.model.WorkoutItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -81,14 +80,19 @@ class WorkoutItemViewModel(
 
 
     suspend fun insert(item: WorkoutItem) {
+        val tempList = mutableListOf<WorkoutItem>()
         viewModelScope.launch {
             repository.insert(item)
             // not sure if this is the right way to do it...
             repository.allWorkoutItemsAsFlow.collect { list ->
-                _allItems.value = list
+                tempList += list
             }
-            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+//            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
 //            WorkoutItemRemoteDataSource.updateRemoteItemList()
+        }
+        viewModelScope.launch {
+            _allItems.value = tempList
+            WorkoutItemRemoteDataSource.updateRemoteItemList(tempList)
         }
     }
 
@@ -119,8 +123,9 @@ class WorkoutItemViewModel(
         viewModelScope.launch {
             repository.allWorkoutItemsAsFlow.collect { list ->
                 _allItems.value = list
+            }.also {
+                WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
             }
-            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
         }
     }
 

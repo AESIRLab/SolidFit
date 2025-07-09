@@ -2,8 +2,10 @@ package com.example.workoutsolidproject.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +70,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -84,6 +87,7 @@ fun UpdateWorkouts(
     val store = AuthTokenStore(LocalContext.current.applicationContext)
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Used for bottom bar navigation
     val navBarItems = listOf(
         BottomNavItem.WorkoutList,
         BottomNavItem.HeartMonitor,
@@ -97,8 +101,7 @@ fun UpdateWorkouts(
             if (!viewModel.remoteIsAvailable()) {
                 val accessToken = store.getAccessToken().first()
                 val signingJwk = store.getSigner().first()
-                // TODO: need add expiration time
-                val expirationTime = 2301220800000// store.get
+                val expirationTime = 2301220800000
                 viewModel.setRemoteRepositoryData(
                     accessToken,
                     signingJwk,
@@ -124,10 +127,9 @@ fun UpdateWorkouts(
             // SCREEN: displays the list of workouts
             composable(route = SolidAuthFlowScreen.WorkoutList.name) {
                 // Fetches all workout items from repo
-                //TODO: Is this okay?: repository.allWorkoutItems -> viewModel.allItems
                 val workouts by viewModel.allItems.collectAsState(initial = emptyList())
-
                 Scaffold(
+                    // Bar at the top of the screen
                     topBar = {
                         TopAppBar(
                             colors = TopAppBarDefaults.topAppBarColors(
@@ -158,6 +160,7 @@ fun UpdateWorkouts(
                             }
                         )
                     },
+                    // Navigation at the bottom of the screen
                     bottomBar = {
                         NavigationBar {
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -209,7 +212,6 @@ fun UpdateWorkouts(
                                 top = innerPadding.calculateTopPadding(),
                                 bottom = innerPadding.calculateBottomPadding()
                             )
-//                            .navigationBarsPadding()
                     ) {
                         WorkoutList(
                             workouts = workouts,
@@ -228,16 +230,17 @@ fun UpdateWorkouts(
 
             // SCREEN: Add workout
             composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
-                val coroutineScope = rememberCoroutineScope()
+                val addWorkoutCoroutineScope = rememberCoroutineScope()
                 AddEditWorkoutScreen(
-                    onSaveWorkout = { _, name, calories, duration ->
-                        coroutineScope.launch {
+                    onSaveWorkout = { _, name, calories, duration, description ->
+                        addWorkoutCoroutineScope.launch {
                             viewModel.insert(
                                 WorkoutItem(
                                     id = "",
                                     name = name,
                                     caloriesBurned = calories,
                                     duration = duration,
+                                    description = description
                                 )
                             )
                             saveWorkoutLog(context)
@@ -260,17 +263,18 @@ fun UpdateWorkouts(
                     viewModel.loadWorkoutByUri(workoutUri)
                 }
                 val workoutState by viewModel.workoutItem.collectAsState()
-                val coroutineScope = rememberCoroutineScope()
+                val editWorkoutCoroutineScope = rememberCoroutineScope()
                 if (workoutState != null) {
                     AddEditWorkoutScreen(
                         workout = workoutState,
-                        onSaveWorkout = { _, name, calories, duration ->
-                            coroutineScope.launch {
+                        onSaveWorkout = { _, name, calories, duration, description ->
+                            editWorkoutCoroutineScope.launch {
                                 viewModel.update(
                                     workoutState!!.copy(
                                         name = name,
                                         caloriesBurned = calories,
-                                        duration = duration
+                                        duration = duration,
+                                        description = description
                                     )
                                 )
                                 saveWorkoutLog(context)
@@ -284,30 +288,29 @@ fun UpdateWorkouts(
                 }
             }
 
-
             // SCREEN: Weight Monitor
             composable(route = SolidAuthFlowScreen.WeightMonitor.name) {
-                val viewModel: InputReadingsViewModel = viewModel(
+                val weightViewModel: InputReadingsViewModel = viewModel(
                     factory = InputReadingsViewModelFactory(
                         healthConnectManager = healthConnectManager
                     )
                 )
-                val permissionsGranted by viewModel.permissionsGranted
-                val readingsList by viewModel.weightReadingsList
-                val permissions = viewModel.permissions
-                val weeklyAvg by viewModel.weightWeeklyAvg
-                val onPermissionsResult = { viewModel.initialLoad() }
+                val permissionsGranted by weightViewModel.permissionsGranted
+                val readingsList by weightViewModel.weightReadingsList
+                val permissions = weightViewModel.permissions
+                val weeklyAvg by weightViewModel.weightWeeklyAvg
+                val onPermissionsResult = { weightViewModel.initialLoad() }
                 val permissionsLauncher =
-                    rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
+                    rememberLauncherForActivityResult(weightViewModel.permissionsLauncher) {
                         onPermissionsResult()
                     }
 
                 // Trigger `initialLoad` if the UI state is Uninitialized
-                LaunchedEffect(viewModel.uiState) {
-                    Log.d("WEIGHT MONITOR", "LaunchedEffect triggered with uiState: ${viewModel.uiState}")
-                    if (viewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
+                LaunchedEffect(weightViewModel.uiState) {
+                    Log.d("WEIGHT MONITOR", "LaunchedEffect triggered with uiState: ${weightViewModel.uiState}")
+                    if (weightViewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
                         Log.d("WEIGHT MONITOR", "uiState is Uninitialized, calling initialLoad()")
-                        viewModel.initialLoad()
+                        weightViewModel.initialLoad()
                     }
                 }
 
@@ -316,9 +319,9 @@ fun UpdateWorkouts(
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
-                    uiState = viewModel.uiState,
+                    uiState = weightViewModel.uiState,
                     onInsertClick = { weightInput ->
-                        viewModel.inputReadings(weightInput)
+                        weightViewModel.inputReadings(weightInput)
                     },
                     weeklyAvg = weeklyAvg,
                     readingsList = readingsList,
@@ -326,7 +329,7 @@ fun UpdateWorkouts(
                         showExceptionSnackbar(snackbarHostState, coroutineScope, exception)
                     },
                     onPermissionsResult = {
-                        viewModel.initialLoad()
+                        weightViewModel.initialLoad()
                     },
                     onPermissionsLaunch = { values ->
                         permissionsLauncher.launch(values)
@@ -336,44 +339,41 @@ fun UpdateWorkouts(
 
             // SCREEN: Heart Rate Monitor
             composable(route = SolidAuthFlowScreen.HeartRateMonitor.name) {
-                val viewModel: InputReadingsViewModel = viewModel(
+                val heartViewModel: InputReadingsViewModel = viewModel(
                     factory = InputReadingsViewModelFactory(
                         healthConnectManager = healthConnectManager
                     )
                 )
-                val permissionsGranted by viewModel.permissionsGranted
-                val readingsList by viewModel.heartReadingsList
-                val permissions = viewModel.permissions
-                val weeklyAvg by viewModel.heartWeeklyAvg
-                val onPermissionsResult = { viewModel.initialLoad() }
+                val permissionsGranted by heartViewModel.permissionsGranted
+                val readingsList by heartViewModel.heartReadingsList
+                val permissions = heartViewModel.permissions
+                val onPermissionsResult = { heartViewModel.initialLoad() }
                 val permissionsLauncher =
-                    rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
+                    rememberLauncherForActivityResult(heartViewModel.permissionsLauncher) {
                         onPermissionsResult()
                     }
 
                 // Trigger `initialLoad` if the UI state is Uninitialized
-                LaunchedEffect(viewModel.uiState) {
-                    if (viewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
-                        viewModel.initialLoad()
+                LaunchedEffect(heartViewModel.uiState) {
+                    if (heartViewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
+                        heartViewModel.initialLoad()
                     }
                 }
-
                 HeartRateMonitor(
                     navController = navController,
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
-                    uiState = viewModel.uiState,
+                    uiState = heartViewModel.uiState,
                     onInsertClick = { bpm ->
-                        viewModel.inputHeartRate(bpm)
+                        heartViewModel.inputHeartRate(bpm)
                     },
-//                    weeklyAvg = weeklyAvg,
                     readingsList = readingsList,
                     onError = { exception ->
                         showExceptionSnackbar(snackbarHostState, coroutineScope, exception)
                     },
                     onPermissionsResult = {
-                        viewModel.initialLoad()
+                        heartViewModel.initialLoad()
                     },
                     onPermissionsLaunch = { values ->
                         permissionsLauncher.launch(values)

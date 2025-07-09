@@ -36,46 +36,47 @@ import com.example.workoutsolidproject.model.WorkoutItem
 @Composable
 fun AddEditWorkoutScreen(
     workout: WorkoutItem? = null,
-    onSaveWorkout: (String, String, String, String) -> Unit,
+    onSaveWorkout: (String, String, String, String, String) -> Unit,
     onCancel: () -> Unit
 ) {
     var id by remember { mutableStateOf(workout?.id ?: "") }
     var name by remember { mutableStateOf(workout?.name ?: "") }
     var caloriesBurned by remember { mutableStateOf(workout?.caloriesBurned ?: "") }
     var duration by remember { mutableStateOf(workout?.duration  ?: "") }
+    var description by remember {mutableStateOf(workout?.description ?: "")}
 
     Scaffold(
         // Bar at the top of the screen
         topBar = {
-        TopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.hsl(
-                    224f,
-                    1f,
-                    0.73f
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.hsl(
+                        224f,
+                        1f,
+                        0.73f
+                    ),
+                    titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
-                titleContentColor = MaterialTheme.colorScheme.primary,
-            ),
-            title = {
-                Row (modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 30.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween)
-                {
-                    Text(
-                        "Add/Edit Workout",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.exercise_white_34dp),
-                        contentDescription = "App logo",
+                title = {
+                    Row (modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 30.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween)
+                    {
+                        Text(
+                            "Add/Edit Workout",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
+                        Image(
+                            painter = painterResource(id = R.drawable.exercise_white_34dp),
+                            contentDescription = "App logo",
+                        )
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
     )
     { innerPadding ->
         Column(
@@ -108,6 +109,13 @@ fun AddEditWorkoutScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
+            // Description field
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth()
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -131,7 +139,7 @@ fun AddEditWorkoutScreen(
                         0.73f)),
                     onClick = {
                         if (name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()) {
-                            onSaveWorkout(id, name, caloriesBurned, duration)
+                            onSaveWorkout(id, name, caloriesBurned, duration, description)
                         }
                     },
                     enabled = name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()

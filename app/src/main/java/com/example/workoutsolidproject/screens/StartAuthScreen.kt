@@ -42,7 +42,6 @@ import org.aesirlab.mylibrary.buildRegistrationRequest
 import org.aesirlab.mylibrary.getOidcProviderFromWebIdDoc
 import org.skCompiler.generatedModel.AuthTokenStore
 
-
 @Composable
 fun StartAuthScreen(
     tokenStore: AuthTokenStore,
@@ -138,6 +137,5 @@ fun StartAuthScreen(
                 context.startActivity(Intent(Intent.ACTION_VIEW, sendUri))
             }
         }
-
     }
 }

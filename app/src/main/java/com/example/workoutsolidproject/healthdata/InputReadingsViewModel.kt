@@ -30,8 +30,8 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
   var weightWeeklyAvg: MutableState<Mass?> = mutableStateOf(Mass.pounds(0.0))
     private set
 
-  var heartWeeklyAvg: MutableState<Double?> = mutableStateOf(0.0)
-    private set
+//  var heartWeeklyAvg: MutableState<Double?> = mutableStateOf(0.0)
+//    private set
 
   var permissionsGranted = mutableStateOf(false)
     private set

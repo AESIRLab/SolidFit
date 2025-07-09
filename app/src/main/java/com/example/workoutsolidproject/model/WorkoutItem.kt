@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -39,7 +40,8 @@ data class WorkoutItem(
     var name: String = "",
     var caloriesBurned: String,
     var duration: String,
-    var date: Long = System.currentTimeMillis()
+    var date: Long = System.currentTimeMillis(),
+    var description: String
 )
 
 @Composable
@@ -75,7 +77,7 @@ fun WorkoutItem(
                             append("Calories: ")
                         }
                         // Normal weight
-                        append("${workout.caloriesBurned}")
+                        append(workout.caloriesBurned)
                     }
                 )
                 Text(
@@ -98,6 +100,19 @@ fun WorkoutItem(
                         append(SimpleDateFormat("MM/dd/yyyy: hh:mm a", Locale.getDefault()).format(
                             Date(workout.date)
                         ))
+                    }
+                )
+                Text(
+                    text = buildAnnotatedString {
+                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                            // Medium weight
+                            append("Description: ")
+                        }
+                        withStyle(style = SpanStyle(fontSize = 16.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Normal)) {
+                            // Smaller, Italicized, Normal-weight font
+                            append(workout.description)
+                        }
                     }
                 )
             }

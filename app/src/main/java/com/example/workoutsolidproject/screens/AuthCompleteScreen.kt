@@ -8,14 +8,11 @@ import com.nimbusds.jwt.SignedJWT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.aesirlab.mylibrary.generateAuthString
 import org.aesirlab.mylibrary.generateDPoPKey
-import org.json.JSONObject
-import org.skCompiler.generatedModel.AuthTokenStore
 import org.aesirlab.mylibrary.sharedfunctions.buildTokenRequest
 import org.aesirlab.mylibrary.sharedfunctions.createUnsafeOkHttpClient
-import org.aesirlab.mylibrary.sharedfunctions.parseTokenResponseBody
-
+import org.json.JSONObject
+import org.skCompiler.generatedModel.AuthTokenStore
 
 private const val TAG = "AuthCompleteScreen"
 @Composable
@@ -50,9 +47,9 @@ private suspend fun preliminaryAuth(tokenStore: AuthTokenStore, code: String?)  
 
 //    val authForm = DPoPAuth(tokenUri = tokenUrl)
 //    val authString = authForm.generateAuthString("POST")
-//    tokenStore.setSigner(authForm.key!!.toJSONObject().toString())
-    val authString = generateAuthString("POST", tokenUrl, dpop)
-    tokenStore.setSigner(authString)
+    tokenStore.setSigner(dpop.toJSONObject().toString())
+//    val authString = generateAuthString("POST", tokenUrl, dpop)
+//    tokenStore.setSigner(authString)
 //    val response = tokenRequest(
 //        clientId,
 //        clientSecret,

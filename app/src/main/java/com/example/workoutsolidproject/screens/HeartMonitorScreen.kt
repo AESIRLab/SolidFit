@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -36,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,10 +48,9 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.example.workoutsolidproject.BottomNavItem
+import com.example.workoutsolidproject.MainActivity
 import com.example.workoutsolidproject.R
-import com.example.workoutsolidproject.SolidAuthFlowScreen
 import com.example.workoutsolidproject.healthdata.HeartRateBleManager
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
 import java.util.UUID
@@ -68,22 +63,31 @@ fun HeartRateMonitor(
     navController: NavHostController,
     permissions: Set<String>,
     permissionsGranted: Boolean,
+    // TODO: Check if readingsList is actually needed
     readingsList: List<HeartRateRecord>,
     uiState: InputReadingsViewModel.UiState,
     onInsertClick: (Double) -> Unit = {},
     onError: (Throwable?) -> Unit = {},
     onPermissionsResult: () -> Unit = {},
-    // TODO: Likely need to change datatype of weeklyAvg
-//    weeklyAvg: Double?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
 ) {
     val context = LocalContext.current
 
+    // Used for bottom bar navigation
+    val navBarItems = listOf(
+        BottomNavItem.WorkoutList,
+        BottomNavItem.HeartMonitor,
+        BottomNavItem.WeightMonitor,
+    )
+
+    // Current heart rate bpm
     val currentBpm = rememberSaveable { mutableStateOf<Int?>(null) }
 
+    // Permissions for finding and connecting to bluetooth heart rate monitor
     val scanPerm = Manifest.permission.BLUETOOTH_SCAN
     val connectPerm = Manifest.permission.BLUETOOTH_CONNECT
 
+    // Attempts to retrieve relevant bluetooth connections
     val bluetoothLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { }
@@ -98,7 +102,6 @@ fun HeartRateMonitor(
             ContextCompat.checkSelfPermission(context, connectPerm) == PackageManager.PERMISSION_GRANTED
         }
     }
-
 
     LaunchedEffect(Unit) {
         if (!scanGranted || !connectGranted) {
@@ -123,12 +126,6 @@ fun HeartRateMonitor(
         onDispose { bleManager.stop() }
     }
 
-    val navBarItems = listOf(
-        BottomNavItem.WorkoutList,
-        BottomNavItem.HeartMonitor,
-        BottomNavItem.WeightMonitor,
-    )
-
     // Remember the last error ID, such that it is possible to avoid re-launching the error
     // notification for the same error when the screen is recomposed, or configuration changes etc.
     val errorId = rememberSaveable { mutableStateOf(UUID.randomUUID()) }
@@ -138,10 +135,7 @@ fun HeartRateMonitor(
         if (uiState is InputReadingsViewModel.UiState.Uninitialized) {
             onPermissionsResult()
         }
-        // The [InputReadingsScreenViewModel.UiState] provides details of whether the last action
-        // was a success or resulted in an error. Where an error occurred, for example in reading
-        // and writing to Health Connect, the user is notified, and where the error is one that can
-        // be recovered from, an attempt to do so is made.
+        // States whether action is successful or not
         else if (uiState is InputReadingsViewModel.UiState.Error && errorId.value != uiState.uuid) {
             onError(uiState.exception)
             errorId.value = uiState.uuid
@@ -154,7 +148,7 @@ fun HeartRateMonitor(
         }
     }
 
-    // stop scanning when leaving screen
+    // Stop scanning when leaving screen
     DisposableEffect(Unit) {
         onDispose { bleManager.stop() }
     }
@@ -191,6 +185,7 @@ fun HeartRateMonitor(
                 }
             )
         },
+        // Navigation at the bottom of the screen
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -273,5 +268,7 @@ fun HeartRateMonitor(
         }
     }
 }
+
+
 
 

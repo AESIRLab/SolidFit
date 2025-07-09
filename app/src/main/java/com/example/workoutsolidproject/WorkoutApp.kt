@@ -22,7 +22,6 @@ import com.example.workoutsolidproject.screens.AuthCompleteScreen
 import com.example.workoutsolidproject.screens.StartAuthScreen
 import com.example.workoutsolidproject.screens.UnfetchableWebIdScreen
 import com.example.workoutsolidproject.screens.UpdateWorkouts
-import com.hp.hpl.jena.sparql.modify.op.Update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,30 +40,30 @@ enum class SolidAuthFlowScreen {
 }
 
 
+// Used for navbar
 sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
     data object WorkoutList : BottomNavItem(
         route = SolidAuthFlowScreen.WorkoutList.name,
-        title = "Workout List",
+        title = SolidAuthFlowScreen.WorkoutList.name,
         icon = Icons.AutoMirrored.Filled.List
     )
     data object HeartMonitor : BottomNavItem(
         route = SolidAuthFlowScreen.HeartRateMonitor.name,
-        title = "Heart Rate Monitor",
+        title = SolidAuthFlowScreen.HeartRateMonitor.name,
         icon = Icons.Default.Favorite
     )
     data object WeightMonitor: BottomNavItem(
         route = SolidAuthFlowScreen.WeightMonitor.name,
-        title = "Weight Monitor",
+        title = SolidAuthFlowScreen.WeightMonitor.name,
         icon = Icons.Default.Person
     )
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @Composable
 fun WorkoutApp(
     healthConnectManager: HealthConnectManager,
 ) {
-
     val navController = rememberNavController()
     val tokenStore = AuthTokenStore(LocalContext.current.applicationContext)
     val coroutineScope = rememberCoroutineScope()
@@ -107,9 +106,8 @@ fun WorkoutApp(
             // SCREEN: Authentication complete
             composable(
                 route = SolidAuthFlowScreen.AuthCompleteScreen.name,
-                deepLinks = listOf(navDeepLink { uriPattern = "app://www.solid-oidc.com/callback" })
+                deepLinks = listOf(navDeepLink { uriPattern = "app://www.solid-oidc.com/callback"})
             ) {
-
                 AuthCompleteScreen(tokenStore = tokenStore) {
                     UpdateWorkouts(healthConnectManager = healthConnectManager)
                 }

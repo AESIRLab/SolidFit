@@ -23,7 +23,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "2.0.01"
         compileSdkPreview = "VanillaIceCream"
         manifestPlaceholders["appAuthRedirectScheme"] = "com.example.workoutsolidproject"
 
@@ -76,7 +76,7 @@ android {
         }
     }
 }
-val version = "0.0.49"
+val version = "0.0.50"
 dependencies {
 
     // jwt creation

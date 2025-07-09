@@ -8,16 +8,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -51,7 +48,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.workoutsolidproject.BottomNavItem
 import com.example.workoutsolidproject.R
-import com.example.workoutsolidproject.SolidAuthFlowScreen
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
 import com.example.workoutsolidproject.healthdata.dateTimeWithOffsetOrDefault
 import java.time.format.DateTimeFormatter
@@ -72,8 +68,9 @@ fun WeightMonitor(
     onPermissionsResult: () -> Unit = {},
     weeklyAvg: Mass?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
-  ) {
+    ) {
 
+    // Used for bottom bar navigation
     val navBarItems = listOf(
         BottomNavItem.WorkoutList,
         BottomNavItem.HeartMonitor,
@@ -142,6 +139,7 @@ fun WeightMonitor(
                 }
             )
         },
+        // Navigation at the bottom of the screen
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
