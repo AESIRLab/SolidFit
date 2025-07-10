@@ -23,7 +23,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 1
-        versionName = "2.0.01"
+        versionName = "2.0.02"
         compileSdkPreview = "VanillaIceCream"
         manifestPlaceholders["appAuthRedirectScheme"] = "com.example.workoutsolidproject"
 
@@ -121,7 +121,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
 
-
+    // image display
+    implementation (libs.coil.compose)
 
     ksp (libs.androidx.room.compiler.v260)
 

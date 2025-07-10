@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -232,7 +233,7 @@ fun UpdateWorkouts(
             composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
                 val addWorkoutCoroutineScope = rememberCoroutineScope()
                 AddEditWorkoutScreen(
-                    onSaveWorkout = { _, name, calories, duration, description ->
+                    onSaveWorkout = { _, name, calories, duration, description, mediaUri ->
                         addWorkoutCoroutineScope.launch {
                             viewModel.insert(
                                 WorkoutItem(
@@ -240,7 +241,8 @@ fun UpdateWorkouts(
                                     name = name,
                                     caloriesBurned = calories,
                                     duration = duration,
-                                    description = description
+                                    description = description,
+                                    mediaUri = mediaUri
                                 )
                             )
                             saveWorkoutLog(context)
@@ -264,27 +266,31 @@ fun UpdateWorkouts(
                 }
                 val workoutState by viewModel.workoutItem.collectAsState()
                 val editWorkoutCoroutineScope = rememberCoroutineScope()
-                if (workoutState != null) {
-                    AddEditWorkoutScreen(
-                        workout = workoutState,
-                        onSaveWorkout = { _, name, calories, duration, description ->
-                            editWorkoutCoroutineScope.launch {
-                                viewModel.update(
-                                    workoutState!!.copy(
-                                        name = name,
-                                        caloriesBurned = calories,
-                                        duration = duration,
-                                        description = description
+//                if (workoutState != null) {
+                  workoutState?.let { workout ->
+                    key(workout.id) {
+                        AddEditWorkoutScreen(
+                            workout = workoutState,
+                            onSaveWorkout = { _, name, calories, duration, description, mediaUri ->
+                                editWorkoutCoroutineScope.launch {
+                                    viewModel.update(
+                                        workoutState!!.copy(
+                                            name = name,
+                                            caloriesBurned = calories,
+                                            duration = duration,
+                                            description = description,
+                                            mediaUri = mediaUri
+                                        )
                                     )
-                                )
-                                saveWorkoutLog(context)
+                                    saveWorkoutLog(context)
+                                    navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
+                                }
+                            },
+                            onCancel = {
                                 navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
                             }
-                        },
-                        onCancel = {
-                            navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
-                        }
-                    )
+                        )
+                    }
                 }
             }
 

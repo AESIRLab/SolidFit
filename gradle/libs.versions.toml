@@ -6,6 +6,7 @@ androidx-health-connect = "1.1.0"
 androidxJunit = "1.2.1"
 androidxLifecycleRuntimeKtx = "2.8.7"
 androidxRoomKtx = "2.6.1"
+coil = "2.2.2"
 composeBomVersion = "2024.11.00"
 connectClient = "1.1.0-alpha10"
 connectClientVersion = "1.1.0"
@@ -78,6 +79,7 @@ androidx-room-runtime-v260 = { module = "androidx.room:room-runtime", version.re
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomKtx" }
 androidx-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "runtime" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "daggerCompiler" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }

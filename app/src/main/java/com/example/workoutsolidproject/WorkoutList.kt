@@ -20,7 +20,7 @@ fun WorkoutList(
             WorkoutItem(
                 workout = workout,
                 onDelete = onDeleteWorkout,
-                onEdit = onEditWorkout
+                onEdit = onEditWorkout,
             )
         }
     }

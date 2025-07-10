@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.skCompiler.generatedModel.WorkoutItemRemoteDataSource
 import org.skCompiler.generatedModel.WorkoutItemRepository
@@ -68,12 +69,24 @@ class WorkoutItemViewModel(
     }
 
 
-    suspend fun updateWebId(webId: String) {
+    fun updateWebId(webId: String) {
         viewModelScope.launch {
-            repository.insertWebId(webId)
-            repository.allWorkoutItemsAsFlow.collect { list ->
-                _allItems.value = list
+            try {
+                repository.insertWebId(webId)
+            } catch (e: Exception) {
+                Log.e("WorkoutVM", "RDF parsing error, resetting local model", e)
+                repository.resetModel()
             }
+
+            repository.allWorkoutItemsAsFlow
+                .catch { e ->
+                    Log.e("WorkoutVM", "Error reading workout items", e)
+                    emit(emptyList())
+                }
+                .collect { list ->
+                    _allItems.value = list
+                }
+
             WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
         }
     }
@@ -87,8 +100,6 @@ class WorkoutItemViewModel(
             repository.allWorkoutItemsAsFlow.collect { list ->
                 tempList += list
             }
-//            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
-//            WorkoutItemRemoteDataSource.updateRemoteItemList()
         }
         viewModelScope.launch {
             _allItems.value = tempList
