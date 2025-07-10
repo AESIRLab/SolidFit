@@ -41,7 +41,7 @@ data class WorkoutItem(
     var caloriesBurned: String,
     var duration: String,
     var date: Long = System.currentTimeMillis(),
-    var description: String
+    var description: String = ""
 )
 
 @Composable
@@ -102,19 +102,27 @@ fun WorkoutItem(
                         ))
                     }
                 )
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Description: ")
+                if (workout.description != "") {
+                    Text(
+                        text = buildAnnotatedString {
+                            // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                                // Medium weight
+                                append("Description: ")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 16.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            ) {
+                                // Smaller, Italicized, Normal-weight font
+                                append(workout.description)
+                            }
                         }
-                        withStyle(style = SpanStyle(fontSize = 16.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Normal)) {
-                            // Smaller, Italicized, Normal-weight font
-                            append(workout.description)
-                        }
-                    }
-                )
+                    )
+                }
             }
 
             IconButton(onClick = { onEdit(workout) }) {
