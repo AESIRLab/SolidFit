@@ -78,19 +78,16 @@ fun UpdateWorkouts(
     healthConnectManager: HealthConnectManager,
 ) {
     val context = LocalContext.current
-
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-
-    val viewModel: WorkoutItemViewModel = viewModel(
-        factory = WorkoutItemViewModel.Factory
-    )
-
     val coroutineScope = rememberCoroutineScope()
     val store = AuthTokenStore(LocalContext.current.applicationContext)
     val snackbarHostState = remember { SnackbarHostState() }
-
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val viewModel: WorkoutItemViewModel = viewModel(
+        factory = WorkoutItemViewModel.Factory
+    )
+    // Used for bottom bar navigation
     val bottomBarScreens = listOf(
         SolidAuthFlowScreen.WorkoutList.name,
         SolidAuthFlowScreen.HeartRateMonitor.name,
@@ -101,7 +98,6 @@ fun UpdateWorkouts(
     val showBottomBar = bottomBarScreens.any {screenRoute ->
         currentRoute?.startsWith(screenRoute) == true
     }
-    // Used for bottom bar navigation
     val navBarItems = listOf(
         BottomNavItem.WorkoutList,
         BottomNavItem.HeartMonitor,
@@ -265,7 +261,6 @@ fun UpdateWorkouts(
                 )
             }
 
-
             // SCREEN: Workout Card
             composable(
                 route = "${SolidAuthFlowScreen.WorkoutCardScreen.name}/{workoutUri}",
@@ -278,8 +273,7 @@ fun UpdateWorkouts(
                 val workoutState by viewModel.workoutItem.collectAsState()
                 workoutState?.let { workout ->
                     WorkoutCard(
-                        workout,
-                        navController = navController
+                        workout
                     )
                 }
             }
@@ -379,7 +373,6 @@ fun UpdateWorkouts(
                 }
 
                 WeightMonitor(
-                    navController = navController,
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
@@ -409,7 +402,6 @@ fun UpdateWorkouts(
                     )
                 )
                 val permissionsGranted by heartViewModel.permissionsGranted
-                val readingsList by heartViewModel.heartReadingsList
                 val permissions = heartViewModel.permissions
                 val onPermissionsResult = { heartViewModel.initialLoad() }
                 val permissionsLauncher =
@@ -424,7 +416,6 @@ fun UpdateWorkouts(
                     }
                 }
                 HeartRateMonitor(
-                    navController = navController,
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
@@ -432,7 +423,6 @@ fun UpdateWorkouts(
                     onInsertClick = { bpm ->
                         heartViewModel.inputHeartRate(bpm)
                     },
-                    readingsList = readingsList,
                     onError = { exception ->
                         showExceptionSnackbar(snackbarHostState, coroutineScope, exception)
                     },
@@ -447,7 +437,6 @@ fun UpdateWorkouts(
         }
     }
 }
-
 
 // Saves current date - used to see if user has already logged workout for the day -> wont notify again
 fun saveWorkoutLog(context: Context) {

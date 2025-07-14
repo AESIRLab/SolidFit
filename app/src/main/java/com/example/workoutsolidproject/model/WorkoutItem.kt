@@ -1,14 +1,12 @@
 package com.example.workoutsolidproject.model
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,14 +30,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.zybooks.sksolidannotations.SolidAnnotation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 
 @SolidAnnotation(
         "https://solidev.me/AndroidApplication/WorkoutApp",
@@ -62,14 +58,6 @@ fun WorkoutItem(
     onEdit: (WorkoutItem) -> Unit,
     onSelect: (WorkoutItem) -> Unit
 ) {
-    // Logic for truncating lengthy description
-    val maxChars = 80
-    val truncDescription = if (workout.description.length > maxChars) {
-        "${workout.description.take(maxChars)}..."
-    } else {
-        workout.description
-    }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -89,7 +77,7 @@ fun WorkoutItem(
                     .weight(1f)
                     .padding(end = 16.dp)
             ){
-
+                // NAME
                 Text(
                     text = workout.name,
                     fontSize = 17.sp, fontWeight = FontWeight.Bold,
@@ -97,6 +85,7 @@ fun WorkoutItem(
                     maxLines = 1,
                 )
 
+                // CALORIES
                 Text(
                     text = buildAnnotatedString {
                         // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
@@ -108,6 +97,8 @@ fun WorkoutItem(
                         append(workout.caloriesBurned)
                     }
                 )
+
+                // DURATION
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
@@ -118,6 +109,8 @@ fun WorkoutItem(
                         append("${workout.duration} minutes")
                     }
                 )
+
+                // DATE
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
@@ -131,8 +124,10 @@ fun WorkoutItem(
                     }
                 )
 
+                // DESCRIPTION
                 if (workout.description.isNotBlank()) {
                     Text(
+                        // Truncates the description if it's too long
                         maxLines = 3,
                         text = buildAnnotatedString {
                             // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
@@ -149,7 +144,7 @@ fun WorkoutItem(
                                 )
                             ) {
                                 // Smaller, Italicized, Normal-weight font
-                                append(truncDescription)
+                                append(workout.description)
                             }
                         }
                     )
@@ -159,6 +154,7 @@ fun WorkoutItem(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // THUMBNAIL
                 if (workout.mediaUri.isNotBlank()) {
                     Image(
                         painter = rememberAsyncImagePainter(model = Uri.parse(workout.mediaUri)),
@@ -170,6 +166,7 @@ fun WorkoutItem(
                     )
                 }
                 Row(modifier = Modifier.padding(top = 6.dp)) {
+                    // EDIT BUTTON
                     IconButton(onClick = { onEdit(workout) }) {
                         Icon(
                             Icons.Filled.Edit,
@@ -177,6 +174,8 @@ fun WorkoutItem(
                             tint = Color.Black
                         )
                     }
+
+                    // DELETE BUTTON
                     IconButton(onClick = { onDelete(workout) }) {
                         Icon(
                             Icons.Filled.Delete,

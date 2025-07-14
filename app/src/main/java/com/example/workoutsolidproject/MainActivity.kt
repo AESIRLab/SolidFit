@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
         // Notification -> Bluetooth
         notifcationLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) { results ->
+        ) { _ ->
             bluetoothLauncher.launch(arrayOf(
                 BLUETOOTH_SCAN,
                 BLUETOOTH_CONNECT
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
         // Bluetooth -> Media
         bluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) { results ->
+        ) { _ ->
             val mediaPerms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 arrayOf(
                     READ_MEDIA_IMAGES,
