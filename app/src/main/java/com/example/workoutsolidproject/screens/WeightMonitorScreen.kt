@@ -108,63 +108,63 @@ fun WeightMonitor(
     }
 
     Scaffold(
-        // Bar at the top of the screen
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.hsl(
-                        224f,
-                        1f,
-                        0.73f
-                    ),
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Row (modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 30.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween)
-                    {
-                        Text(
-                            "Weight Monitor",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.exercise_white_34dp),
-                            contentDescription = "App logo"
-                        )
-                    }
-                }
-            )
-        },
-        // Navigation at the bottom of the screen
-        bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-
-                navBarItems.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
-                        label = { Text(screen.title) },
-                        selected = currentDestination
-                            ?.hierarchy
-                            ?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-            }
-        }
+//        // Bar at the top of the screen
+//        topBar = {
+//            TopAppBar(
+//                colors = TopAppBarDefaults.topAppBarColors(
+//                    containerColor = Color.hsl(
+//                        224f,
+//                        1f,
+//                        0.73f
+//                    ),
+//                    titleContentColor = MaterialTheme.colorScheme.primary,
+//                ),
+//                title = {
+//                    Row (modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(end = 30.dp),
+//                        horizontalArrangement = Arrangement.SpaceBetween)
+//                    {
+//                        Text(
+//                            "Weight Monitor",
+//                            fontSize = 26.sp,
+//                            fontWeight = FontWeight.Bold,
+//                            color = Color.White
+//                        )
+//                        Image(
+//                            painter = painterResource(id = R.drawable.exercise_white_34dp),
+//                            contentDescription = "App logo"
+//                        )
+//                    }
+//                }
+//            )
+//        },
+//        // Navigation at the bottom of the screen
+//        bottomBar = {
+//            NavigationBar {
+//                val navBackStackEntry by navController.currentBackStackEntryAsState()
+//                val currentDestination = navBackStackEntry?.destination
+//
+//                navBarItems.forEach { screen ->
+//                    NavigationBarItem(
+//                        icon = { Icon(screen.icon, contentDescription = screen.title) },
+//                        label = { Text(screen.title) },
+//                        selected = currentDestination
+//                            ?.hierarchy
+//                            ?.any { it.route == screen.route } == true,
+//                        onClick = {
+//                            navController.navigate(screen.route) {
+//                                popUpTo(navController.graph.findStartDestination().id) {
+//                                    saveState = true
+//                                }
+//                                launchSingleTop = true
+//                                restoreState = true
+//                            }
+//                        }
+//                    )
+//                }
+//            }
+//        }
 
     ) { innerPadding ->
         if (uiState != InputReadingsViewModel.UiState.Uninitialized) {

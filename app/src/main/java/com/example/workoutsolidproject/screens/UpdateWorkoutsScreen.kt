@@ -8,17 +8,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -78,16 +77,30 @@ import java.util.Locale
 fun UpdateWorkouts(
     healthConnectManager: HealthConnectManager,
 ) {
+    val context = LocalContext.current
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
     val viewModel: WorkoutItemViewModel = viewModel(
         factory = WorkoutItemViewModel.Factory
     )
+
     val coroutineScope = rememberCoroutineScope()
     val store = AuthTokenStore(LocalContext.current.applicationContext)
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val bottomBarScreens = listOf(
+        SolidAuthFlowScreen.WorkoutList.name,
+        SolidAuthFlowScreen.HeartRateMonitor.name,
+        SolidAuthFlowScreen.WeightMonitor.name,
+        SolidAuthFlowScreen.WorkoutCardScreen.name
+    )
+    val currentRoute = currentDestination?.route
+    val showBottomBar = bottomBarScreens.any {screenRoute ->
+        currentRoute?.startsWith(screenRoute) == true
+    }
     // Used for bottom bar navigation
     val navBarItems = listOf(
         BottomNavItem.WorkoutList,
@@ -119,113 +132,155 @@ fun UpdateWorkouts(
         }
     }
 
-    Scaffold {
-        val context = LocalContext.current
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.hsl(
+                        224f,
+                        1f,
+                        0.73f
+                    ),
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Row (modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 30.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween)
+                    {
+                        Text(
+                            "Workout Tracker",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.exercise_white_34dp),
+                            contentDescription = "App logo"
+                        )
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar {
+                    navBarItems.forEach { screen ->
+                        val isSelected = currentRoute?.startsWith(screen.route) == true ||
+                                (currentRoute?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true &&
+                                        screen.route == SolidAuthFlowScreen.WorkoutList.name)
+
+                        NavigationBarItem(
+                            icon = { Icon(screen.icon, contentDescription = screen.title) },
+                            label = { Text(screen.title) },
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        floatingActionButton = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                when {
+                    // This will only show the FAB on the WorkoutList screen
+                    currentDestination?.route == SolidAuthFlowScreen.WorkoutList.name -> {
+                        FloatingActionButton(
+                            containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
+                            onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
+                            shape = CircleShape,
+                            elevation = FloatingActionButtonDefaults.elevation(
+                                defaultElevation = 0.dp,
+                                hoveredElevation = 0.dp
+                            )
+                        ) {
+                            Icon(
+                                Icons.Filled.Add,
+                                contentDescription = "Add workout",
+                                modifier = Modifier.size(25.dp)
+                            )
+                        }
+                    }
+                    currentRoute?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true -> {
+                        FloatingActionButton(
+                            containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
+                            onClick = {
+                                navController.popBackStack()
+                            },
+                            shape = CircleShape,
+                            elevation = FloatingActionButtonDefaults.elevation(
+                                defaultElevation = 0.dp,
+                                hoveredElevation = 0.dp
+                            )
+                        ) {
+                            Icon(
+                                Icons.Filled.ArrowBack,
+                                contentDescription = "Return to list",
+                                modifier = Modifier.size(25.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = SolidAuthFlowScreen.WorkoutList.name,
+            modifier = Modifier.padding(
+                top = innerPadding.calculateTopPadding(),
+                bottom = innerPadding.calculateBottomPadding()
+            )
         ) {
             // SCREEN: displays the list of workouts
             composable(route = SolidAuthFlowScreen.WorkoutList.name) {
                 // Fetches all workout items from repo
                 val workouts by viewModel.allItems.collectAsState(initial = emptyList())
-                Scaffold(
-                    // Bar at the top of the screen
-                    topBar = {
-                        TopAppBar(
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.hsl(
-                                    224f,
-                                    1f,
-                                    0.73f
-                                ),
-                                titleContentColor = MaterialTheme.colorScheme.primary,
-                            ),
-                            title = {
-                                Row (modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(end = 30.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween)
-                                {
-                                    Text(
-                                        "Workout Tracker",
-                                        fontSize = 26.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                    Image(
-                                        painter = painterResource(id = R.drawable.exercise_white_34dp),
-                                        contentDescription = "App logo"
-                                    )
-                                }
-                            }
-                        )
-                    },
-                    // Navigation at the bottom of the screen
-                    bottomBar = {
-                        NavigationBar {
-                            val navBackStackEntry by navController.currentBackStackEntryAsState()
-                            val currentDestination = navBackStackEntry?.destination
-                            navBarItems.forEach { screen ->
-                                NavigationBarItem(
-                                    icon = { Icon(screen.icon, contentDescription = screen.title) },
-                                    label = { Text(screen.title) },
-                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                    onClick = {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                )
-                            }
+                WorkoutList(
+                    workouts = workouts,
+                    onDeleteWorkout = { workout ->
+                        coroutineScope.launch {
+                            viewModel.delete(workout)
                         }
                     },
-                    floatingActionButton = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 32.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            // This will only show the FAB on the WorkoutList screen
-                            if (currentDestination?.route == SolidAuthFlowScreen.WorkoutList.name) {
-                                FloatingActionButton(
-                                    containerColor = Color.hsl(224f, 1f, 0.73f),
-                                    onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
-                                    shape = CircleShape,
-                                ) {
-                                    Icon(
-                                        Icons.Filled.Add,
-                                        contentDescription = "Add workout",
-                                        modifier = Modifier.size(25.dp)
-                                    )
-                                }
-                            }
-                        }
+                    onEditWorkout = { workout ->
+                        navController.navigate(route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/${workout.id}")
+                    },
+                    onSelectWorkout = { workout ->
+                        navController.navigate(route = "${SolidAuthFlowScreen.WorkoutCardScreen.name}/${workout.id}")
                     }
-                ) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(
-                                top = innerPadding.calculateTopPadding(),
-                                bottom = innerPadding.calculateBottomPadding()
-                            )
-                    ) {
-                        WorkoutList(
-                            workouts = workouts,
-                            onDeleteWorkout = { workout ->
-                                coroutineScope.launch {
-                                    viewModel.delete(workout)
-                                }
-                            },
-                            onEditWorkout = { workout ->
-                                navController.navigate(route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/${workout.id}")
-                            }
-                        )
-                    }
+                )
+            }
+
+
+            // SCREEN: Workout Card
+            composable(
+                route = "${SolidAuthFlowScreen.WorkoutCardScreen.name}/{workoutUri}",
+                arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val workoutUri = backStackEntry.arguments!!.getString("workoutUri")!!
+                LaunchedEffect(workoutUri) {
+                    viewModel.loadWorkoutByUri(workoutUri)
+                }
+                val workoutState by viewModel.workoutItem.collectAsState()
+                workoutState?.let { workout ->
+                    WorkoutCard(
+                        workout,
+                        navController = navController
+                    )
                 }
             }
 
@@ -260,14 +315,14 @@ fun UpdateWorkouts(
                 route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/{workoutUri}",
                 arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })
             ) { backStackEntry ->
-                val workoutUri = backStackEntry.arguments?.getString("workoutUri") ?: return@composable
+                val workoutUri =
+                    backStackEntry.arguments?.getString("workoutUri") ?: return@composable
                 LaunchedEffect(workoutUri) {
                     viewModel.loadWorkoutByUri(workoutUri)
                 }
                 val workoutState by viewModel.workoutItem.collectAsState()
                 val editWorkoutCoroutineScope = rememberCoroutineScope()
-//                if (workoutState != null) {
-                  workoutState?.let { workout ->
+                workoutState?.let { workout ->
                     key(workout.id) {
                         AddEditWorkoutScreen(
                             workout = workoutState,
@@ -313,7 +368,10 @@ fun UpdateWorkouts(
 
                 // Trigger `initialLoad` if the UI state is Uninitialized
                 LaunchedEffect(weightViewModel.uiState) {
-                    Log.d("WEIGHT MONITOR", "LaunchedEffect triggered with uiState: ${weightViewModel.uiState}")
+                    Log.d(
+                        "WEIGHT MONITOR",
+                        "LaunchedEffect triggered with uiState: ${weightViewModel.uiState}"
+                    )
                     if (weightViewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
                         Log.d("WEIGHT MONITOR", "uiState is Uninitialized, calling initialLoad()")
                         weightViewModel.initialLoad()
@@ -389,6 +447,7 @@ fun UpdateWorkouts(
         }
     }
 }
+
 
 // Saves current date - used to see if user has already logged workout for the day -> wont notify again
 fun saveWorkoutLog(context: Context) {

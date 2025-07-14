@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -42,8 +43,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.workoutsolidproject.R
 import com.example.workoutsolidproject.model.WorkoutItem
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +59,7 @@ fun AddEditWorkoutScreen(
     var caloriesBurned by remember { mutableStateOf(workout?.caloriesBurned ?: "") }
     var duration by remember { mutableStateOf(workout?.duration  ?: "") }
     var description by remember {mutableStateOf(workout?.description ?: "")}
-    var mediaUri by remember(workout?.mediaUri) { mutableStateOf(workout?.mediaUri?.let(Uri::parse)) }
+    var mediaUri by remember(workout?.mediaUri) { mutableStateOf(workout?.mediaUri?.let(Uri::parse)?: "")}
 
     val context = LocalContext.current
     // Used to display image
@@ -73,130 +74,94 @@ fun AddEditWorkoutScreen(
             mediaUri = it
         }
     }
+        Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
 
-    Scaffold(
-        // Bar at the top of the screen
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.hsl(
-                        224f,
-                        1f,
-                        0.73f
-                    ),
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Row (modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 30.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween)
-                    {
-                        Text(
-                            "Add/Edit Workout",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.exercise_white_34dp),
-                            contentDescription = "App logo",
-                        )
-                    }
-                }
+    ) {
+        // Name field
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Workout Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Calories field
+        OutlinedTextField(
+            value = caloriesBurned,
+            onValueChange = { caloriesBurned = it },
+            label = { Text("Calories Burned") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Duration field
+        OutlinedTextField(
+            value = duration,
+            onValueChange = { duration = it },
+            label = { Text("Duration (minutes)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Description field
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        mediaUri?.let { uri ->
+            Image(
+                painter = rememberAsyncImagePainter(model = uri),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(25.dp))
+                    .border(1.dp, Color.Gray, RoundedCornerShape(25.dp))
+                    .align(Alignment.CenterHorizontally)
             )
         }
-    )
-    { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            // Name field
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Workout Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            // Calories field
-            OutlinedTextField(
-                value = caloriesBurned,
-                onValueChange = { caloriesBurned = it },
-                label = { Text("Calories Burned") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            // Duration field
-            OutlinedTextField(
-                value = duration,
-                onValueChange = { duration = it },
-                label = { Text("Duration (minutes)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            // Description field
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            mediaUri?.let { uri ->
-                Image(
-                    painter = rememberAsyncImagePainter(model = uri),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(25.dp))
-                        .border(1.dp, Color.Gray, RoundedCornerShape(25.dp))
-                        .align(Alignment.CenterHorizontally)
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            // Cancel add/edit workout
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
+                    224f,
+                    1f,
+                    0.73f)),
+                onClick = onCancel
             ) {
-                // Cancel add/edit workout
-                Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
-                        224f,
-                        1f,
-                        0.73f)),
-                    onClick = onCancel
-                ) {
-                    Text("Cancel")
-                }
-                // Add/Change photo
-                Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
-                        224f,
-                        1f,
-                        0.73f)),
-                    onClick = { mediaLauncher.launch(arrayOf("image/*")) }
-                ) {
-                    Text(if (mediaUri.toString() == "") "Select Photo" else "Change Photo")
-                }
-                // Save workout
-                Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
-                        224f,
-                        1f,
-                        0.73f)),
-                    onClick = {
-                        if (name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()) {
-                            onSaveWorkout(id, name, caloriesBurned, duration, description, mediaUri?.toString().orEmpty())
-                        }
-                    },
-                    enabled = name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()
-                ) {
-                    Text("Save")
-                }
+                Text("Cancel")
+            }
+            // Add/Change photo
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
+                    224f,
+                    1f,
+                    0.73f)),
+                onClick = { mediaLauncher.launch(arrayOf("image/*")) }
+            ) {
+                Text(if (mediaUri.toString() == "") "Select Photo" else "Change Photo")
+            }
+            // Save workout
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(
+                    224f,
+                    1f,
+                    0.73f)),
+                onClick = {
+                    if (name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()) {
+                        onSaveWorkout(id, name, caloriesBurned, duration, description, mediaUri?.toString().orEmpty())
+                    }
+                },
+                enabled = name.isNotBlank() && caloriesBurned.isNotBlank() && duration.isNotBlank()
+            ) {
+                Text("Save")
             }
         }
     }

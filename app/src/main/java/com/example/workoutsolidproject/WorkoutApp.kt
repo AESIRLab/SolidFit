@@ -32,6 +32,7 @@ import org.skCompiler.generatedModel.AuthTokenStore
 enum class SolidAuthFlowScreen {
     AddEditWorkoutScreen,
     WorkoutList,
+    WorkoutCardScreen,
     UnfetchableWebIdScreen,
     AuthCompleteScreen,
     StartAuthScreen,
@@ -44,17 +45,17 @@ enum class SolidAuthFlowScreen {
 sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
     data object WorkoutList : BottomNavItem(
         route = SolidAuthFlowScreen.WorkoutList.name,
-        title = SolidAuthFlowScreen.WorkoutList.name,
+        title = "Workout List",
         icon = Icons.AutoMirrored.Filled.List
     )
     data object HeartMonitor : BottomNavItem(
         route = SolidAuthFlowScreen.HeartRateMonitor.name,
-        title = SolidAuthFlowScreen.HeartRateMonitor.name,
+        title = "Heart Rate Monitor",
         icon = Icons.Default.Favorite
     )
     data object WeightMonitor: BottomNavItem(
         route = SolidAuthFlowScreen.WeightMonitor.name,
-        title = SolidAuthFlowScreen.WeightMonitor.name,
+        title = "Weight Monitor",
         icon = Icons.Default.Person
     )
 }

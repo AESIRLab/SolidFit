@@ -1,12 +1,14 @@
 package com.example.workoutsolidproject.model
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.zybooks.sksolidannotations.SolidAnnotation
@@ -57,12 +60,22 @@ fun WorkoutItem(
     workout: WorkoutItem,
     onDelete: (WorkoutItem) -> Unit,
     onEdit: (WorkoutItem) -> Unit,
+    onSelect: (WorkoutItem) -> Unit
 ) {
+    // Logic for truncating lengthy description
+    val maxChars = 80
+    val truncDescription = if (workout.description.length > maxChars) {
+        "${workout.description.take(maxChars)}..."
+    } else {
+        workout.description
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .padding(8.dp)
+            .clickable { onSelect(workout) },
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Row(
             modifier = Modifier
@@ -80,7 +93,8 @@ fun WorkoutItem(
                 Text(
                     text = workout.name,
                     fontSize = 17.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 5.dp)
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    maxLines = 1,
                 )
 
                 Text(
@@ -116,8 +130,10 @@ fun WorkoutItem(
                         ))
                     }
                 )
-                if (workout.description != "") {
+
+                if (workout.description.isNotBlank()) {
                     Text(
+                        maxLines = 3,
                         text = buildAnnotatedString {
                             // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
@@ -128,18 +144,18 @@ fun WorkoutItem(
                                 style = SpanStyle(
                                     fontSize = 16.sp,
                                     fontStyle = FontStyle.Italic,
-                                    fontWeight = FontWeight.Normal
+                                    fontWeight = FontWeight.Normal,
+
                                 )
                             ) {
                                 // Smaller, Italicized, Normal-weight font
-                                append(workout.description)
+                                append(truncDescription)
                             }
                         }
                     )
                 }
             }
             Column(
-                modifier = Modifier.padding(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -149,11 +165,11 @@ fun WorkoutItem(
                         contentDescription = "Workout photo",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(70.dp)
                             .clip(RoundedCornerShape(8.dp))
                     )
                 }
-                Row(modifier = Modifier.padding(top = 10.dp)) {
+                Row(modifier = Modifier.padding(top = 6.dp)) {
                     IconButton(onClick = { onEdit(workout) }) {
                         Icon(
                             Icons.Filled.Edit,

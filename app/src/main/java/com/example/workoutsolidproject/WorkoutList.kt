@@ -11,7 +11,8 @@ import com.example.workoutsolidproject.model.WorkoutItem
 fun WorkoutList(
     workouts: List<WorkoutItem>,
     onDeleteWorkout: (WorkoutItem) -> Unit,
-    onEditWorkout: (WorkoutItem) -> Unit
+    onEditWorkout: (WorkoutItem) -> Unit,
+    onSelectWorkout: (WorkoutItem) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -21,6 +22,7 @@ fun WorkoutList(
                 workout = workout,
                 onDelete = onDeleteWorkout,
                 onEdit = onEditWorkout,
+                onSelect = onSelectWorkout
             )
         }
     }
