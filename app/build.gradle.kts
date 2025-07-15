@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.Delete
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -23,7 +25,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 1
-        versionName = "2.0.05"
+        versionName = "2.0.06"
         compileSdkPreview = "VanillaIceCream"
         manifestPlaceholders["appAuthRedirectScheme"] = "com.example.workoutsolidproject"
 
@@ -76,6 +78,15 @@ android {
         }
     }
 }
+
+val deleteFolder by tasks.registering(Delete::class) {
+    delete(layout.projectDirectory.dir("build"))
+}
+
+tasks.named("preBuild") {
+    dependsOn(deleteFolder)
+}
+
 val version = "0.0.50"
 dependencies {
 
@@ -94,6 +105,7 @@ dependencies {
     // code verifier util
     // jwt utils
     implementation(libs.appauth)
+    implementation(libs.play.services.location)
 
     ksp("com.squareup:kotlinpoet:1.14.0")
     ksp("com.squareup:kotlinpoet-ksp:1.12.0")

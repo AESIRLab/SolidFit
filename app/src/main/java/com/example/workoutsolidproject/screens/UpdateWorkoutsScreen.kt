@@ -6,6 +6,8 @@ import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +69,7 @@ import com.example.workoutsolidproject.model.WorkoutItem
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import org.skCompiler.generatedModel.AuthTokenStore
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -90,6 +95,7 @@ fun UpdateWorkouts(
     // Used for bottom bar navigation
     val bottomBarScreens = listOf(
         SolidAuthFlowScreen.WorkoutList.name,
+        SolidAuthFlowScreen.AddEditWorkoutScreen.name,
         SolidAuthFlowScreen.HeartRateMonitor.name,
         SolidAuthFlowScreen.WeightMonitor.name,
         SolidAuthFlowScreen.WorkoutCardScreen.name
@@ -185,48 +191,63 @@ fun UpdateWorkouts(
             }
         },
         floatingActionButton = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
+            Crossfade(
+                targetState = currentRoute,
+                animationSpec = tween(durationMillis = 600), label = ""
+            ) { route ->
                 when {
                     // This will only show the FAB on the WorkoutList screen
-                    currentDestination?.route == SolidAuthFlowScreen.WorkoutList.name -> {
-                        FloatingActionButton(
-                            containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
-                            onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
-                            shape = CircleShape,
-                            elevation = FloatingActionButtonDefaults.elevation(
-                                defaultElevation = 0.dp,
-                                hoveredElevation = 0.dp
-                            )
+                    route == SolidAuthFlowScreen.WorkoutList.name -> {
+//                    currentDestination?.route == SolidAuthFlowScreen.WorkoutList.name -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 32.dp),
+                            horizontalArrangement = Arrangement.Center,
                         ) {
-                            Icon(
-                                Icons.Filled.Add,
-                                contentDescription = "Add workout",
-                                modifier = Modifier.size(25.dp)
-                            )
+                            FloatingActionButton(
+                                containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
+                                onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
+                                shape = RoundedCornerShape(75),
+                                elevation = FloatingActionButtonDefaults.elevation(
+                                    defaultElevation = 0.dp,
+                                    hoveredElevation = 0.dp
+                                ),
+                            ) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = "Add workout",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
                         }
                     }
-                    currentRoute?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true -> {
-                        FloatingActionButton(
-                            containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
-                            onClick = {
-                                navController.popBackStack()
-                            },
-                            shape = CircleShape,
-                            elevation = FloatingActionButtonDefaults.elevation(
-                                defaultElevation = 0.dp,
-                                hoveredElevation = 0.dp
-                            )
+                    // Shows FAB "Back Button" on Workout Card Screen
+                    route?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true -> {
+//                    currentRoute?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 32.dp),
+                            horizontalArrangement = Arrangement.Absolute.Left,
                         ) {
-                            Icon(
-                                Icons.Filled.ArrowBack,
-                                contentDescription = "Return to list",
-                                modifier = Modifier.size(25.dp)
-                            )
+                            FloatingActionButton(
+                                containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
+                                onClick = {
+                                    navController.popBackStack()
+                                },
+                                shape = CircleShape,
+                                elevation = FloatingActionButtonDefaults.elevation(
+                                    defaultElevation = 0.dp,
+                                    hoveredElevation = 0.dp
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Filled.ArrowBack,
+                                    contentDescription = "Return to list",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
                         }
                     }
                 }

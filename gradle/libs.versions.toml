@@ -54,6 +54,7 @@ okhttp = "4.12.0"
 appauth = "0.11.1"
 workRuntimeKtx = "2.10.0"
 composeMaterial3 = "1.0.0-alpha29"
+playServicesLocation = "21.3.0"
 
 [libraries]
 accompanist-themeadapter-material3 = { module = "com.google.accompanist:accompanist-themeadapter-material3", version.ref = "accompanistThemeadapterMaterial3" }
@@ -114,6 +115,7 @@ symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-ap
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 androidx-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

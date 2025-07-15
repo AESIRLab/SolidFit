@@ -9,10 +9,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -77,7 +79,7 @@ fun AddEditWorkoutScreen(
         Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
 
@@ -87,7 +89,9 @@ fun AddEditWorkoutScreen(
             value = name,
             onValueChange = { name = it },
             label = { Text("Workout Name") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
         )
         // Calories field
         OutlinedTextField(
@@ -118,14 +122,17 @@ fun AddEditWorkoutScreen(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .height(200.dp)
+                    .fillMaxWidth()
+                    .height(400.dp)
                     .clip(RoundedCornerShape(25.dp))
-                    .border(1.dp, Color.Gray, RoundedCornerShape(25.dp))
+                    .border(1.5.dp, Color.Gray, RoundedCornerShape(25.dp))
                     .align(Alignment.CenterHorizontally)
             )
         }
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // Cancel add/edit workout
