@@ -208,7 +208,7 @@ fun UpdateWorkouts(
                             FloatingActionButton(
                                 containerColor = Color.hsl(224f, 1f, 0.73f, 0.75f),
                                 onClick = { navController.navigate(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) },
-                                shape = RoundedCornerShape(75),
+                                shape = CircleShape,
                                 elevation = FloatingActionButtonDefaults.elevation(
                                     defaultElevation = 0.dp,
                                     hoveredElevation = 0.dp
@@ -217,7 +217,8 @@ fun UpdateWorkouts(
                                 Icon(
                                     Icons.Filled.Add,
                                     contentDescription = "Add workout",
-                                    modifier = Modifier.size(25.dp)
+                                    modifier = Modifier
+                                        .size(28.dp)
                                 )
                             }
                         }
@@ -245,7 +246,7 @@ fun UpdateWorkouts(
                                 Icon(
                                     Icons.Filled.ArrowBack,
                                     contentDescription = "Return to list",
-                                    modifier = Modifier.size(25.dp)
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
                         }
