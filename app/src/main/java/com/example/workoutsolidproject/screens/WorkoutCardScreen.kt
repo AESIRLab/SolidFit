@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.Paragraph
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -114,7 +117,7 @@ fun WorkoutCard(
             }
         )
 
-        // DESCRIPTION
+        // DATE
         Text(
             modifier = Modifier.padding(bottom = 5.dp),
             text = buildAnnotatedString {
@@ -136,24 +139,31 @@ fun WorkoutCard(
                 }
             }
         )
+        // DESCRIPTION
         if (workout.description != "") {
             Text(
-                modifier = Modifier.padding(bottom = 5.dp),
                 text = buildAnnotatedString {
                     // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
                     withStyle(style = SpanStyle(fontSize = 19.sp, fontWeight = FontWeight.Medium)) {
                         // Medium weight
-                        append("Description:\n\t\t\t")
+                        append("Description:")
                     }
-                    withStyle(
-                        style = SpanStyle(
-                            fontSize = 18.sp,
-                            fontStyle = FontStyle.Italic,
-                            fontWeight = FontWeight.Normal
-                        )
-                    ) {
-                        // Smaller, Italicized, Normal-weight font
-                        append(workout.description)
+                },
+            )
+            Text(
+                modifier = Modifier.padding(top = 6.dp, bottom = 16.dp),
+                text = buildAnnotatedString {
+                    // Doubled "withStyle" so I could add lineHeight to only the description body
+                    withStyle(style = ParagraphStyle(lineHeight = 30.sp)) {
+                        withStyle(
+                            style = SpanStyle(
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        ) {
+                            // Smaller, Italicized, Normal-weight font
+                            append("\t\t\t${workout.description}")
+                        }
                     }
                 }
             )
