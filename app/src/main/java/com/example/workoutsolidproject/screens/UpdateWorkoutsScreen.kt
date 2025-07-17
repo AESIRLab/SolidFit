@@ -66,9 +66,11 @@ import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModelFactory
 import com.example.workoutsolidproject.healthdata.showExceptionSnackbar
 import com.example.workoutsolidproject.model.WorkoutItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import org.skCompiler.generatedModel.AuthTokenStore
 import java.text.SimpleDateFormat
@@ -110,6 +112,28 @@ fun UpdateWorkouts(
         BottomNavItem.WeightMonitor,
     )
 
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                val webId = store.getWebId().first()
+                viewModel.updateWebId(webId)
+                if (!viewModel.remoteIsAvailable()) {
+                    val accessToken = store.getAccessToken().first()
+                    val signingJwk = store.getSigner().first()
+                    val expirationTime = 2301220800000
+                    viewModel.setRemoteRepositoryData(
+                        accessToken,
+                        signingJwk,
+                        webId,
+                        expirationTime
+                    )
+                } else {
+                    viewModel.fetchRemoteList()
+                }
+            }
+        }
+    }
+
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         runBlocking {
             val webId = store.getWebId().first()
@@ -124,6 +148,8 @@ fun UpdateWorkouts(
                     webId,
                     expirationTime
                 )
+            } else {
+                viewModel.fetchRemoteList()
             }
         }
     }

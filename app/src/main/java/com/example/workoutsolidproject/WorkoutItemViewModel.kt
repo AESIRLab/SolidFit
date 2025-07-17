@@ -91,6 +91,11 @@ class WorkoutItemViewModel(
         }
     }
 
+    suspend fun fetchRemoteList() {
+        viewModelScope.launch {
+            _allItems.value  += WorkoutItemRemoteDataSource.fetchRemoteItemList()
+        }
+    }
 
     suspend fun insert(item: WorkoutItem) {
         val tempList = mutableListOf<WorkoutItem>()

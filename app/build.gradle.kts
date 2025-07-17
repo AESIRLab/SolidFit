@@ -25,7 +25,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 1
-        versionName = "2.0.08"
+        versionName = "2.0.09"
         compileSdkPreview = "VanillaIceCream"
         manifestPlaceholders["appAuthRedirectScheme"] = "com.example.workoutsolidproject"
 

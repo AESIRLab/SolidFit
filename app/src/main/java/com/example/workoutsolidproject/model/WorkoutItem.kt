@@ -38,8 +38,8 @@ import java.util.Date
 import java.util.Locale
 
 @SolidAnnotation(
-        "https://solidev.me/AndroidApplication/WorkoutApp",
-    "http://www.w3.org/2024/ci/core#"
+        "http://www.w3.org/2024/ci/core#",
+    "AndroidApplication/WorkoutApp"
 )
 data class WorkoutItem(
     var id: String,
