@@ -1,5 +1,6 @@
 package com.example.workoutsolidproject
 
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.Manifest.permission.BLUETOOTH_SCAN
 import android.Manifest.permission.POST_NOTIFICATIONS
@@ -16,55 +17,49 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import com.example.workoutsolidproject.ui.theme.WorkoutSolidProjectTheme
 
 class MainActivity : ComponentActivity() {
-    private lateinit var notifcationLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var bluetoothLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var mediaLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var permLauncher: ActivityResultLauncher<Array<String>>
 
     @SuppressLint("InlinedApi")
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Log.d("MAIN ACTIVITY", "Before healthConnectManager initialization")
-
-        // Start of permissions request chain definition.
-        // Notification -> Bluetooth
-        notifcationLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { _ ->
-            bluetoothLauncher.launch(arrayOf(
-                BLUETOOTH_SCAN,
-                BLUETOOTH_CONNECT
-            ))
-        }
-
-        // Permissions request chain:
-        // Bluetooth -> Media
-        bluetoothLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { _ ->
-            val mediaPerms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                arrayOf(
+        val permBatches = mutableListOf<Array<String>>().apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(arrayOf(POST_NOTIFICATIONS))
+                add(arrayOf(
                     READ_MEDIA_IMAGES,
                     READ_MEDIA_VIDEO,
                     READ_MEDIA_VISUAL_USER_SELECTED
-                )
-            } else arrayOf(READ_EXTERNAL_STORAGE)
-            mediaLauncher.launch(mediaPerms)
+                ))
+            }
+            add(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    arrayOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT)
+                } else {
+                    arrayOf(ACCESS_FINE_LOCATION, READ_EXTERNAL_STORAGE)
+                }
+            )
         }
 
-        // Permissions request chain:
-        // Media
-        mediaLauncher = registerForActivityResult(
+        permLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) {}
+        ) { _ ->
+            currentBatchIndex++
+            if (currentBatchIndex < permBatches.size) {
+                permLauncher.launch(permBatches[currentBatchIndex])
+            }
+        }
 
-        // Launches permissions request chain
-        notifcationLauncher.launch(arrayOf(POST_NOTIFICATIONS))
+        currentBatchIndex = 0
+        if (permBatches.isNotEmpty()) {
+            permLauncher.launch(permBatches[0])
+        }
+
 
         // Used to connect health connect object throughout the app
         val healthConnectManager = (application as WorkoutItemSolidApplication).healthConnectManager
@@ -73,9 +68,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WorkoutSolidProjectTheme {
-                Log.d("MAIN ACTIVITY", "Calling WorkoutApp(..)")
                 WorkoutApp(healthConnectManager = healthConnectManager)
             }
         }
     }
+
+    private var currentBatchIndex = 0
 }

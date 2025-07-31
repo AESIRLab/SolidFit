@@ -1,8 +1,11 @@
 package com.example.workoutsolidproject.healthdata
 
+import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.os.RemoteException
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.health.connect.client.permission.HealthPermission
@@ -12,15 +15,17 @@ import androidx.health.connect.client.units.Mass
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import kotlinx.coroutines.launch
 
-class InputReadingsViewModel(private val healthConnectManager: HealthConnectManager) :
-  ViewModel() {
+class InputReadingsViewModel(
+  private val healthConnectManager: HealthConnectManager,
+  appContext: Context
+) : ViewModel() {
   val permissions = setOf(
     HealthPermission.getReadPermission(HeartRateRecord::class),
     HealthPermission.getWritePermission(HeartRateRecord::class),
@@ -46,6 +51,53 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     private set
 
   val permissionsLauncher = healthConnectManager.requestPermissionsActivityContract()
+
+  private val _devices = mutableStateListOf<BluetoothDevice>()
+  val devices: List<BluetoothDevice> = _devices
+
+  private val _currentBpm = mutableStateOf<Int?>(null)
+  val currentBpm: Int? get() = _currentBpm.value
+
+  private var selectedDevice: BluetoothDevice? = null
+
+  private val bleManager = HeartRateBleManager(
+    appContext,
+    onDeviceFound = { dev ->
+      if (dev !in _devices) _devices += dev
+    },
+    onBpm = { bpm ->
+      _currentBpm.value = bpm
+      inputHeartRate(bpm.toDouble())
+    },
+    onDisconnect = {
+      _currentBpm.value = null
+      _devices.clear()
+      startBleScan()
+    }
+  )
+
+  fun startBleScan() {
+    _devices.clear()
+    _currentBpm.value = null
+    selectedDevice = null
+    bleManager.startScan()
+  }
+
+  fun connectTo(device: BluetoothDevice) {
+    selectedDevice = device
+    bleManager.connectTo(device)
+  }
+
+  private fun resumeConnection() {
+    selectedDevice?.let {
+      bleManager.connectTo(it)
+    }
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    bleManager.stop()
+  }
 
   fun initialLoad() {
     viewModelScope.launch {
@@ -124,17 +176,21 @@ class InputReadingsViewModel(private val healthConnectManager: HealthConnectMana
     // A random UUID is used in each Error object to allow errors to be uniquely identified, and recomposition won't result in multiple snackbars.
     data class Error(val exception: Throwable, val uuid: UUID = UUID.randomUUID()) : UiState()
   }
+
+
 }
 
 class InputReadingsViewModelFactory(
     private val healthConnectManager: HealthConnectManager,
+    private val appContext: Context
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(InputReadingsViewModel::class.java)) {
       @Suppress("UNCHECKED_CAST")
       return InputReadingsViewModel(
-        healthConnectManager = healthConnectManager
-      ) as T
+        healthConnectManager = healthConnectManager,
+        appContext = appContext.applicationContext
+        ) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class")
   }

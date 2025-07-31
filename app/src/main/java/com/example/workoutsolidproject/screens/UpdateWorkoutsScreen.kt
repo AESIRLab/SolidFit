@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -38,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -71,7 +69,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import org.skCompiler.generatedModel.AuthTokenStore
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -115,6 +112,7 @@ fun UpdateWorkouts(
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
+                viewModel.fetchRemoteList()
                 val webId = store.getWebId().first()
                 viewModel.updateWebId(webId)
                 if (!viewModel.remoteIsAvailable()) {
@@ -127,9 +125,7 @@ fun UpdateWorkouts(
                         webId,
                         expirationTime
                     )
-                } else {
-                    viewModel.fetchRemoteList()
-                }
+                } else {    }
             }
         }
     }
@@ -251,7 +247,6 @@ fun UpdateWorkouts(
                     }
                     // Shows FAB "Back Button" on Workout Card Screen
                     route?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true -> {
-//                    currentRoute?.startsWith(SolidAuthFlowScreen.WorkoutCardScreen.name) == true -> {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -301,6 +296,7 @@ fun UpdateWorkouts(
                         }
                     },
                     onEditWorkout = { workout ->
+                        Log.d("Debug", workout.id)
                         navController.navigate(route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/${workout.id}")
                     },
                     onSelectWorkout = { workout ->
@@ -311,12 +307,12 @@ fun UpdateWorkouts(
 
             // SCREEN: Workout Card
             composable(
-                route = "${SolidAuthFlowScreen.WorkoutCardScreen.name}/{workoutUri}",
-                arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })
+                route = "${SolidAuthFlowScreen.WorkoutCardScreen.name}/{workoutId}",
+                arguments = listOf(navArgument("workoutId") { type = NavType.StringType })
             ) { backStackEntry ->
-                val workoutUri = backStackEntry.arguments!!.getString("workoutUri")!!
-                LaunchedEffect(workoutUri) {
-                    viewModel.loadWorkoutByUri(workoutUri)
+                val workoutId = backStackEntry.arguments!!.getString("workoutId")!!
+                LaunchedEffect(workoutId) {
+                    viewModel.loadWorkoutById(workoutId)
                 }
                 val workoutState by viewModel.workoutItem.collectAsState()
                 workoutState?.let { workout ->
@@ -326,41 +322,17 @@ fun UpdateWorkouts(
                 }
             }
 
-            // SCREEN: Add workout
-            composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
-                val addWorkoutCoroutineScope = rememberCoroutineScope()
-                AddEditWorkoutScreen(
-                    onSaveWorkout = { _, name, calories, duration, description, mediaUri ->
-                        addWorkoutCoroutineScope.launch {
-                            viewModel.insert(
-                                WorkoutItem(
-                                    id = "",
-                                    name = name,
-                                    caloriesBurned = calories,
-                                    duration = duration,
-                                    description = description,
-                                    mediaUri = mediaUri
-                                )
-                            )
-                            saveWorkoutLog(context)
-                            navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
-                        }
-                    },
-                    onCancel = {
-                        navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
-                    }
-                )
-            }
-
             // SCREEN: Edit workout
             composable(
-                route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/{workoutUri}",
-                arguments = listOf(navArgument("workoutUri") { type = NavType.StringType })
+                route = "${SolidAuthFlowScreen.AddEditWorkoutScreen.name}/{workoutId}",
+                arguments = listOf(navArgument("workoutId") {
+                    type = NavType.StringType
+                })
             ) { backStackEntry ->
-                val workoutUri =
-                    backStackEntry.arguments?.getString("workoutUri") ?: return@composable
-                LaunchedEffect(workoutUri) {
-                    viewModel.loadWorkoutByUri(workoutUri)
+                val workoutId =
+                    backStackEntry.arguments?.getString("workoutId") ?: return@composable
+                LaunchedEffect(workoutId) {
+                    viewModel.loadWorkoutById(workoutId)
                 }
                 val workoutState by viewModel.workoutItem.collectAsState()
                 val editWorkoutCoroutineScope = rememberCoroutineScope()
@@ -368,13 +340,26 @@ fun UpdateWorkouts(
                     key(workout.id) {
                         AddEditWorkoutScreen(
                             workout = workoutState,
-                            onSaveWorkout = { _, name, calories, duration, description, mediaUri ->
+                            onSaveWorkout = { _, userId, name, age, gender, height, weight, stepsTaken, caloriesBurned, hoursSlept, waterIntake, activeMinutes, heartRate, workoutType, stressLevel, mood, description, mediaUri ->
                                 editWorkoutCoroutineScope.launch {
                                     viewModel.update(
                                         workoutState!!.copy(
+                                            userId = userId,
                                             name = name,
-                                            caloriesBurned = calories,
-                                            duration = duration,
+                                            age = age,
+                                            gender = gender,
+                                            height = height,
+                                            weight = weight,
+                                            stepsTaken = stepsTaken,
+                                            caloriesBurned = caloriesBurned,
+                                            hoursSlept = hoursSlept,
+                                            waterIntake = waterIntake,
+                                            activeMinutes = activeMinutes,
+                                            heartRate = heartRate,
+                                            workoutType = workoutType,
+                                            stressLevel = stressLevel,
+                                            mood = mood,
+//                                    duration = duration,
                                             description = description,
                                             mediaUri = mediaUri
                                         )
@@ -391,11 +376,51 @@ fun UpdateWorkouts(
                 }
             }
 
+            // SCREEN: Add workout
+            composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
+                val addWorkoutCoroutineScope = rememberCoroutineScope()
+                AddEditWorkoutScreen(
+                    onSaveWorkout = { _, userId, name, age, gender, height, weight, stepsTaken, caloriesBurned, hoursSlept, waterIntake, activeMinutes, heartRate, workoutType, stressLevel, mood, description, mediaUri ->
+                        addWorkoutCoroutineScope.launch {
+                            viewModel.insert(
+                                WorkoutItem(
+                                    id = "",
+                                    userId = userId,
+                                    name = name,
+                                    age = age,
+                                    gender = gender,
+                                    height = height,
+                                    weight = weight,
+                                    stepsTaken = stepsTaken,
+                                    caloriesBurned = caloriesBurned,
+                                    hoursSlept = hoursSlept,
+                                    waterIntake = waterIntake,
+                                    activeMinutes = activeMinutes,
+                                    heartRate = heartRate,
+                                    workoutType = workoutType,
+                                    stressLevel = stressLevel,
+                                    mood = mood,
+//                                    duration = duration,
+                                    description = description,
+                                    mediaUri = mediaUri
+                                )
+                            )
+                            saveWorkoutLog(context)
+                            navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
+                        }
+                    },
+                    onCancel = {
+                        navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
+                    }
+                )
+            }
+
             // SCREEN: Weight Monitor
             composable(route = SolidAuthFlowScreen.WeightMonitor.name) {
                 val weightViewModel: InputReadingsViewModel = viewModel(
                     factory = InputReadingsViewModelFactory(
-                        healthConnectManager = healthConnectManager
+                        healthConnectManager = healthConnectManager,
+                        appContext = context
                     )
                 )
                 val permissionsGranted by weightViewModel.permissionsGranted
@@ -410,17 +435,13 @@ fun UpdateWorkouts(
 
                 // Trigger `initialLoad` if the UI state is Uninitialized
                 LaunchedEffect(weightViewModel.uiState) {
-                    Log.d(
-                        "WEIGHT MONITOR",
-                        "LaunchedEffect triggered with uiState: ${weightViewModel.uiState}"
-                    )
                     if (weightViewModel.uiState is InputReadingsViewModel.UiState.Uninitialized) {
-                        Log.d("WEIGHT MONITOR", "uiState is Uninitialized, calling initialLoad()")
                         weightViewModel.initialLoad()
                     }
                 }
 
                 WeightMonitor(
+                    healthConnectManager = healthConnectManager,
                     permissionsGranted = permissionsGranted,
                     permissions = permissions,
 
@@ -438,7 +459,7 @@ fun UpdateWorkouts(
                     },
                     onPermissionsLaunch = { values ->
                         permissionsLauncher.launch(values)
-                    },
+                    }
                 )
             }
 
@@ -446,7 +467,8 @@ fun UpdateWorkouts(
             composable(route = SolidAuthFlowScreen.HeartRateMonitor.name) {
                 val heartViewModel: InputReadingsViewModel = viewModel(
                     factory = InputReadingsViewModelFactory(
-                        healthConnectManager = healthConnectManager
+                        healthConnectManager = healthConnectManager,
+                        appContext = context
                     )
                 )
                 val permissionsGranted by heartViewModel.permissionsGranted
@@ -464,7 +486,8 @@ fun UpdateWorkouts(
                     }
                 }
                 HeartRateMonitor(
-                    permissionsGranted = permissionsGranted,
+//                    permissionsGranted = permissionsGranted,
+                    healthConnectManager = healthConnectManager,
                     permissions = permissions,
 
                     uiState = heartViewModel.uiState,

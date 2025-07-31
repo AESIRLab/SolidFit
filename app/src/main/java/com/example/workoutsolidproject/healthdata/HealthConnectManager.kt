@@ -35,29 +35,37 @@ const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
  * Demonstrates reading and writing from Health Connect.
  */
 class HealthConnectManager(private val context: Context) {
-  private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+
+  private var client: HealthConnectClient? = null
 
   var availability = mutableStateOf(HealthConnectAvailability.NOT_SUPPORTED)
     private set
 
-  init {
-    checkAvailability()
-  }
+//  init {
+//    checkAvailability()
+//  }
 
   fun checkAvailability() {
-    availability.value = when {
-      HealthConnectClient.getSdkStatus(context) == SDK_AVAILABLE -> HealthConnectAvailability.INSTALLED
-      isSupported() -> HealthConnectAvailability.NOT_INSTALLED
-      else -> HealthConnectAvailability.NOT_SUPPORTED
+    availability.value = when (HealthConnectClient.getSdkStatus(context)) {
+      SDK_AVAILABLE -> {
+        client = HealthConnectClient.getOrCreate(context)
+        HealthConnectAvailability.INSTALLED
+      }
+      else ->
+        if (Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK) {
+          client = null
+          HealthConnectAvailability.NOT_INSTALLED
+        }
+        else {
+          client = null
+          HealthConnectAvailability.NOT_SUPPORTED
+        }
     }
   }
 
-  @OptIn(ExperimentalFeatureAvailabilityApi::class)
-  fun isFeatureAvailable(feature: Int): Boolean{
-    return healthConnectClient
-      .features
-      .getFeatureStatus(feature) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
-  }
+  fun isReady(): Boolean = client != null
+
+  private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
   /**
    * Determines whether all the specified permissions are already granted. It is recommended to
@@ -66,16 +74,26 @@ class HealthConnectManager(private val context: Context) {
    * [PermissionController.createRequestPermissionResultContract].
    */
   suspend fun hasAllPermissions(permissions: Set<String>): Boolean {
-    return healthConnectClient.permissionController.getGrantedPermissions().containsAll(permissions)
+    val c = client ?: return false
+    val granted = c.permissionController.getGrantedPermissions()
+    return granted.containsAll(permissions)
   }
 
   fun requestPermissionsActivityContract(): ActivityResultContract<Set<String>, Set<String>> {
     return PermissionController.createRequestPermissionResultContract()
   }
 
+  private fun showInstallToast() {
+    Toast.makeText(
+      context,
+      "Health Connect isn't installed. Please install it from the Play Store.",
+      Toast.LENGTH_LONG
+    ).show()
+  }
 
   // Writes WeightRecord to Health Connect.
   suspend fun writeWeightInput(weightInput: Double) {
+    val c = client ?: return showInstallToast()
     val time = ZonedDateTime.now().withNano(0)
     val weightRecord = WeightRecord(
         weight = Mass.pounds(weightInput),
@@ -93,6 +111,7 @@ class HealthConnectManager(private val context: Context) {
 
   // Reads in existing WeightRecords
   suspend fun readWeightInputs(start: Instant, end: Instant): List<WeightRecord> {
+    val c = client ?: return emptyList()
     val request = ReadRecordsRequest(
       recordType = WeightRecord::class,
       timeRangeFilter = TimeRangeFilter.between(start, end)

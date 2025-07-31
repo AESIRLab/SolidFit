@@ -1,6 +1,9 @@
 package com.example.workoutsolidproject.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,14 +28,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.units.Mass
 import com.example.workoutsolidproject.R
+import com.example.workoutsolidproject.healthdata.HealthConnectAvailability
+import com.example.workoutsolidproject.healthdata.HealthConnectManager
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
 import com.example.workoutsolidproject.healthdata.dateTimeWithOffsetOrDefault
 import java.time.format.DateTimeFormatter
@@ -40,6 +48,7 @@ import java.util.UUID
 
 @Composable
 fun WeightMonitor(
+    healthConnectManager: HealthConnectManager,
     permissions: Set<String>,
     permissionsGranted: Boolean,
     readingsList: List<WeightRecord>,
@@ -50,6 +59,39 @@ fun WeightMonitor(
     weeklyAvg: Mass?,
     onPermissionsLaunch: (Set<String>) -> Unit = {},
     ) {
+
+    val context = LocalContext.current
+    val availability by remember { derivedStateOf { healthConnectManager.availability.value} }
+
+    if (availability == HealthConnectAvailability.NOT_INSTALLED) {
+        LaunchedEffect(Unit) {
+            val uri = Uri.parse("market://details?id=com.google.android.apps.healthdata")
+            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            } else {
+                context.startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata")
+                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
+                )
+            }
+        }
+        // Optionally show a message while they install
+        Box(
+            Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "Health Connect is required: \nredirecting to Play Store…",
+                textAlign = TextAlign.Center
+            )
+        }
+        return
+    }
 
     // Remember the last error ID, such that it is possible to avoid re-launching the error
     // notification for the same error when the screen is recomposed, or configuration changes etc.

@@ -32,6 +32,12 @@
         android:name="android.permission.BLUETOOTH_CONNECT"
         tools:targetApi="s" />
 
+    <!-- /////////// Needed to track user location /////////// -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ -->
+
     <!-- Needed to discover BLE devices on Android 10 and below -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -71,6 +77,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WorkoutSolidProjectTheme"
         tools:targetApi="31">
+        <service android:name=".locationdata.LocationService" android:foregroundServiceType="location" />
         <activity
             android:name="MainActivity"
             android:exported="true"

@@ -1,6 +1,7 @@
 package com.example.workoutsolidproject.healthdata
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
@@ -14,11 +15,14 @@ import android.content.Context
 import android.os.ParcelUuid
 import java.util.UUID
 import android.bluetooth.le.ScanResult
+import com.google.firebase.database.OnDisconnect
 
 
 class HeartRateBleManager(
     private val context: Context,
-    private val onBpm: (Int) -> Unit
+    private val onDeviceFound: (BluetoothDevice) -> Unit,
+    private val onBpm: (Int) -> Unit,
+    private val onDisconnect: ()-> Unit
 ) {
     private val HEART_RATE_SERVICE_UUID = UUID.fromString("0000180D-0000-1000-8000-00805F9B34FB")
     private val HEART_RATE_MEASUREMENT_CHAR_UUID = UUID.fromString("00002A37-0000-1000-8000-00805F9B34FB")
@@ -33,9 +37,7 @@ class HeartRateBleManager(
 
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
-            // stop scanning, connect to first HRM found
-            scanner.stopScan(this)
-            result.device.connectGatt(context, false, gattCallback)
+            onDeviceFound(result.device)
         }
     }
 
@@ -45,6 +47,7 @@ class HeartRateBleManager(
                 g.discoverServices()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 g.close()
+                onDisconnect()
             }
         }
 
@@ -86,6 +89,13 @@ class HeartRateBleManager(
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
         scanner.startScan(listOf(filter), settings, scanCallback)
+    }
+
+    // Called once user selects bluetooth device from the list
+    fun connectTo(device: BluetoothDevice) {
+        // Stops the scanning
+        scanner.stopScan(scanCallback)
+        gatt = device.connectGatt(context, false, gattCallback)
     }
 
     fun stop() {

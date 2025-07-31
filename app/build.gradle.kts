@@ -25,7 +25,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 1
-        versionName = "2.0.09"
+        versionName = "2.0.10"
         compileSdkPreview = "VanillaIceCream"
         manifestPlaceholders["appAuthRedirectScheme"] = "com.example.workoutsolidproject"
 
@@ -87,7 +87,7 @@ tasks.named("preBuild") {
     dependsOn(deleteFolder)
 }
 
-val version = "0.0.50"
+val version = "0.0.51"
 dependencies {
 
     // jwt creation

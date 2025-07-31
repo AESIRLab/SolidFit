@@ -14,13 +14,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.skCompiler.generatedModel.WorkoutItemRemoteDataSource
 import org.skCompiler.generatedModel.WorkoutItemRepository
 
 class WorkoutItemViewModel(
     private val repository: WorkoutItemRepository,
-    private val WorkoutItemRemoteDataSource: WorkoutItemRemoteDataSource
+    private val remoteDataSource: WorkoutItemRemoteDataSource
 ): ViewModel() {
 
     private var _allItems: MutableStateFlow<List<WorkoutItem>> = MutableStateFlow(listOf())
@@ -33,13 +34,13 @@ class WorkoutItemViewModel(
         this.viewModelScope.launch {
             val newList = mutableListOf<WorkoutItem>()
             try{
-                if (WorkoutItemRemoteDataSource.remoteAccessible()) {
-                    newList += WorkoutItemRemoteDataSource.fetchRemoteItemList()
+                if (remoteDataSource.remoteAccessible()) {
+                    newList += remoteDataSource.fetchRemoteItemList()
                 }
                 repository.allWorkoutItemsAsFlow.collect { list ->
                     newList += list
                 }
-                _allItems.value = newList.distinct()
+                _allItems.value = newList.distinctBy { it.id }
             } catch (e: NullPointerException) {
                     Log.e("WorkoutViewModel", "Error loading RDF model: ${e.message}")
                     _allItems.value = emptyList()
@@ -50,11 +51,9 @@ class WorkoutItemViewModel(
         }
     }
 
-
     fun remoteIsAvailable(): Boolean {
-        return WorkoutItemRemoteDataSource.remoteAccessible()
+        return remoteDataSource.remoteAccessible()
     }
-
 
     fun setRemoteRepositoryData(
         accessToken: String,
@@ -62,40 +61,62 @@ class WorkoutItemViewModel(
         webId: String,
         expirationTime: Long,
     ) {
-        WorkoutItemRemoteDataSource.signingJwk = signingJwk
-        WorkoutItemRemoteDataSource.webId = webId
-        WorkoutItemRemoteDataSource.expirationTime = expirationTime
-        WorkoutItemRemoteDataSource.accessToken = accessToken
+        remoteDataSource.signingJwk = signingJwk
+        remoteDataSource.webId = webId
+        remoteDataSource.expirationTime = expirationTime
+        remoteDataSource.accessToken = accessToken
     }
-
 
     fun updateWebId(webId: String) {
         viewModelScope.launch {
+            // 1) Keep the new webId (or reset if bad)
             try {
                 repository.insertWebId(webId)
             } catch (e: Exception) {
-                Log.e("WorkoutVM", "RDF parsing error, resetting local model", e)
                 repository.resetModel()
             }
 
-            repository.allWorkoutItemsAsFlow
-                .catch { e ->
-                    Log.e("WorkoutVM", "Error reading workout items", e)
-                    emit(emptyList())
-                }
-                .collect { list ->
-                    _allItems.value = list
-                }
+            // 2) Fetch remote snapshot
+            val remote = if (remoteDataSource.remoteAccessible())
+                remoteDataSource.fetchRemoteItemList()
+            else
+                emptyList()
 
-            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+            // 3) Fetch one snapshot of local items
+            val local = repository.allWorkoutItemsAsFlow.firstOrNull() ?: emptyList()
+
+            // 4) Merge & de-duplicate
+            val merged = (remote + local)
+                .distinctBy { it.id }
+
+            // 5) Overwrite local cache so you never “see” dupes again
+            repository.overwriteModelWithList(merged)
+
+            // 6) Update UI
+            _allItems.value = merged
+
+            // 7) Push merged back to remote
+            remoteDataSource.updateRemoteItemList(merged)
         }
     }
+
 
     suspend fun fetchRemoteList() {
-        viewModelScope.launch {
-            _allItems.value  += WorkoutItemRemoteDataSource.fetchRemoteItemList()
-        }
+        // 1) Pull remote and local snapshots
+        val remote = remoteDataSource.fetchRemoteItemList()
+        val local = repository.allWorkoutItemsAsFlow.firstOrNull() ?: emptyList()
+
+        // 2) Merge & de-duplicate
+        val merged = (remote + local)
+            .distinctBy { it.id }
+
+        // 3) Overwrite local cache so future reads never re-introduce dupes
+        repository.overwriteModelWithList(merged)
+
+        // 4) Update UI
+        _allItems.value = merged
     }
+
 
     suspend fun insert(item: WorkoutItem) {
         val tempList = mutableListOf<WorkoutItem>()
@@ -108,10 +129,9 @@ class WorkoutItemViewModel(
         }
         viewModelScope.launch {
             _allItems.value = tempList
-            WorkoutItemRemoteDataSource.updateRemoteItemList(tempList)
+            remoteDataSource.updateRemoteItemList(tempList)
         }
     }
-
 
     suspend fun insertMany(list: List<WorkoutItem>) {
         viewModelScope.launch {
@@ -122,15 +142,20 @@ class WorkoutItemViewModel(
         }
     }
 
-
-    suspend fun delete(item: WorkoutItem) {
+    fun delete(item: WorkoutItem) {
         viewModelScope.launch {
+            // 1) Delete it from your local RDF store
             repository.deleteByUri(item.id)
-            repository.allWorkoutItemsAsFlow.collect { list ->
-                _allItems.value = list
-            }
-            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
-//            WorkoutItemRemoteDataSource.updateRemoteItemList()
+
+            // 2) Pull one snapshot of your now-current local list
+            val remaining: List<WorkoutItem> =
+                repository.allWorkoutItemsAsFlow.firstOrNull() ?: emptyList()
+
+            // 3) Update your in-memory UI state
+            _allItems.value = remaining
+
+            // 4) Sync that exact list back to your Pod
+            remoteDataSource.updateRemoteItemList(remaining)
         }
     }
 
@@ -140,11 +165,10 @@ class WorkoutItemViewModel(
             repository.allWorkoutItemsAsFlow.collect { list ->
                 _allItems.value = list
             }.also {
-                WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+                remoteDataSource.updateRemoteItemList(_allItems.value)
             }
         }
     }
-
 
     suspend fun update(item: WorkoutItem) {
         viewModelScope.launch {
@@ -152,16 +176,34 @@ class WorkoutItemViewModel(
             repository.allWorkoutItemsAsFlow.collect { list ->
                 _allItems.value = list
             }
-            WorkoutItemRemoteDataSource.updateRemoteItemList(_allItems.value)
+            remoteDataSource.updateRemoteItemList(_allItems.value)
         }
     }
 
-    fun loadWorkoutByUri(uri: String) {
+    private fun merge(remote: List<WorkoutItem>, local: List<WorkoutItem>): List<WorkoutItem> =
+        (remote + local).distinctBy { it.id }
+
+    fun loadWorkoutById(id: String) {
         viewModelScope.launch {
-            // Call the suspend function safely inside the ViewModel's coroutine scope
-            repository.getWorkoutItemLiveData(uri).collect { item ->
-                // Update the StateFlow with the new data
-                _workoutItem.value = item
+            // Try local-first
+            repository.getWorkoutItemLiveData(id).firstOrNull()?.let {
+                _workoutItem.value = it
+                return@launch
+            }
+
+            // Fallback to in-memory merged list
+            val fromMerged = _allItems.value.find { it.id == id }
+            if (fromMerged != null) {
+                _workoutItem.value = fromMerged
+            } else if (remoteDataSource.remoteAccessible()) {
+                // as a last resort, pull fresh remote list into merged
+                val remote = remoteDataSource.fetchRemoteItemList()
+                val local = repository.allWorkoutItemsAsFlow.firstOrNull() ?: emptyList()
+                val merged = merge(remote, local)
+                _allItems.value = merged
+                _workoutItem.value = merged.find { it.id == id }
+            } else {
+                _workoutItem.value = null
             }
         }
     }

@@ -120,7 +120,7 @@ fun WorkoutCard(
                         )
                     ) {
                         // Normal weight
-                        append("${workout.duration} minutes")
+                        append("${workout.activeMinutes} minutes")
                     }
                 }
             )

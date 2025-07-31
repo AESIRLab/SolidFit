@@ -1,23 +1,31 @@
 package com.example.workoutsolidproject.screens
 
 import android.Manifest
+import android.bluetooth.BluetoothDevice
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,33 +35,91 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.workoutsolidproject.R
+import com.example.workoutsolidproject.healthdata.HealthConnectAvailability
+import com.example.workoutsolidproject.healthdata.HealthConnectManager
 import com.example.workoutsolidproject.healthdata.HeartRateBleManager
 import com.example.workoutsolidproject.healthdata.InputReadingsViewModel
+import com.example.workoutsolidproject.healthdata.InputReadingsViewModelFactory
 import java.util.UUID
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun HeartRateMonitor(
+    healthConnectManager: HealthConnectManager,
     permissions: Set<String>,
-    permissionsGranted: Boolean,
     uiState: InputReadingsViewModel.UiState,
     onInsertClick: (Double) -> Unit = {},
     onError: (Throwable?) -> Unit = {},
     onPermissionsResult: () -> Unit = {},
     onPermissionsLaunch: (Set<String>) -> Unit = {},
 ) {
+    // TODO: Might be able to remove the permissionsGranted val above
+    val activity = LocalContext.current as ComponentActivity
     val context = LocalContext.current
-
-    // Current heart rate bpm
-    val currentBpm = rememberSaveable { mutableStateOf<Int?>(null) }
+    val vm: InputReadingsViewModel = viewModel(
+        activity,
+        factory = InputReadingsViewModelFactory(
+            healthConnectManager,
+            activity
+        )
+    )
+    val devices by remember { derivedStateOf {vm.devices}}
+    val currentBpm by remember { derivedStateOf {vm.currentBpm}}
+    val uiState by remember { derivedStateOf { vm.uiState }}
 
     // Permissions for finding and connecting to bluetooth heart rate monitor
     val scanPerm = Manifest.permission.BLUETOOTH_SCAN
     val connectPerm = Manifest.permission.BLUETOOTH_CONNECT
+
+    val locationPerm = Manifest.permission.ACCESS_FINE_LOCATION
+
+    LaunchedEffect(Unit) {
+        healthConnectManager.checkAvailability()
+    }
+
+    val availability by remember { derivedStateOf { healthConnectManager.availability.value}}
+
+    if (availability == HealthConnectAvailability.NOT_INSTALLED) {
+        LaunchedEffect(Unit) {
+            val uri = Uri.parse("market://details?id=com.google.android.apps.healthdata")
+            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            } else {
+                context.startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata")
+                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
+                )
+            }
+        }
+        // Optionally show a message while they install
+        Box(
+            Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "Health Connect is required: \nredirecting to Play Store…",
+                textAlign = TextAlign.Center
+            )
+        }
+        return
+    }
+
+    val healthLauncher = rememberLauncherForActivityResult(
+        contract = vm.permissionsLauncher
+    ) { grantedPermissions: Set<String> ->
+        vm.initialLoad()
+    }
 
     // Attempts to retrieve relevant bluetooth connections
     val bluetoothLauncher = rememberLauncherForActivityResult(
@@ -71,54 +137,41 @@ fun HeartRateMonitor(
         }
     }
 
+    val locationGranted by remember {
+        derivedStateOf {
+            ContextCompat.checkSelfPermission(context, locationPerm) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    val blePermissionsGranted = scanGranted && connectGranted
+    val healthPermissionsGranted = vm.permissionsGranted.value
+
     LaunchedEffect(Unit) {
-        if (!scanGranted || !connectGranted) {
-            bluetoothLauncher.launch(arrayOf(scanPerm, connectPerm))
+        if (!blePermissionsGranted || !locationGranted) {
+            bluetoothLauncher.launch(
+                arrayOf(
+                    scanPerm,
+                    connectPerm
+                )
+            )
         }
     }
-
-    val bleManager = remember {
-        HeartRateBleManager(context) { bpm ->
-            currentBpm.value = bpm
-            onInsertClick(bpm.toDouble())
-        }
-    }
-
-    LaunchedEffect(permissionsGranted, scanGranted, connectGranted) {
-        if (permissionsGranted && scanGranted && connectGranted) {
-            bleManager.startScan()
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose { bleManager.stop() }
-    }
-
-    // Remember the last error ID, such that it is possible to avoid re-launching the error
-    // notification for the same error when the screen is recomposed, or configuration changes etc.
-    val errorId = rememberSaveable { mutableStateOf(UUID.randomUUID()) }
-
     LaunchedEffect(uiState) {
-        // If the initial data load has not taken place, attempt to load the data.
-        if (uiState is InputReadingsViewModel.UiState.Uninitialized) {
-            onPermissionsResult()
-        }
-        // States whether action is successful or not
-        else if (uiState is InputReadingsViewModel.UiState.Error && errorId.value != uiState.uuid) {
-            onError(uiState.exception)
-            errorId.value = uiState.uuid
-        }
-    }
-
-    LaunchedEffect(permissionsGranted) {
-        if (permissionsGranted) {
-            bleManager.startScan()
+        when (uiState) {
+            is InputReadingsViewModel.UiState.Uninitialized -> {
+                vm.initialLoad()
+            }
+            is InputReadingsViewModel.UiState.Error -> {
+                onError((uiState as InputReadingsViewModel.UiState.Error).exception)
+            }
+            else -> { /* UiState.Done — nothing to do */ }
         }
     }
 
-    // Stop scanning when leaving screen
-    DisposableEffect(Unit) {
-        onDispose { bleManager.stop() }
+    LaunchedEffect(blePermissionsGranted, locationGranted, healthPermissionsGranted) {
+        if ((blePermissionsGranted && healthPermissionsGranted) || (locationGranted && healthPermissionsGranted)) {
+            vm.startBleScan()
+        }
     }
 
     if (uiState != InputReadingsViewModel.UiState.Uninitialized) {
@@ -129,10 +182,16 @@ fun HeartRateMonitor(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (!permissionsGranted) {
+            if (!blePermissionsGranted && !locationGranted) {
+                item {
+                    Text("Waiting for Bluetooth permissions...", fontSize = 20.sp)
+                }
+                return@LazyColumn
+            }
+            if (!healthPermissionsGranted) {
                 item {
                     Button(
-                        onClick = { onPermissionsLaunch(permissions) },
+                        onClick = { healthLauncher.launch(vm.permissions) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.hsl(224f, 1f,0.73f)
                         )
@@ -140,41 +199,63 @@ fun HeartRateMonitor(
                         Text(text = stringResource(R.string.permissions_button_label))
                     }
                 }
+                return@LazyColumn
             }
             else {
-                // Current BPM
-                item {
-                    if (currentBpm.value == null) {
-                        Text(
-                            text = "Searching...",
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = Color.Black,
-                            modifier = Modifier.padding(vertical = 16.dp)
-                        )
+                // If we have no bpm yet…
+                if (currentBpm == null) {
+                    if (devices.isEmpty()) {
+                        item {
+                            Text("Searching for devices…", fontSize = 20.sp)
+                        }
+                    } else {
+                        // Show a row for each found device
+                        items(devices) { device ->
+                            Button(
+                                onClick = { vm.connectTo(device) },
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp),
+                                colors = ButtonColors(
+                                    Color.hsl(
+                                    224f,
+                                    1f,
+                                    0.73f
+                                    ),
+                                    Color.Black,
+                                    Color.hsl(
+                                    224f,
+                                    1f,
+                                    0.73f
+                                    ),
+                                    Color.Black
+                                )
+                            ) {
+                                Text(text = device.name ?: device.address)
+                            }
+                        }
                     }
-                    else {
+                } else {
+                    // Connected & have BPM
+                    item {
                         Text(
-                            text = stringResource(id = R.string.current_bpm),
+                            text = "Current heart rate",
                             fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black,
-                            modifier = Modifier.padding(top = 20.dp, bottom = 10.dp),
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = currentBpm.value.let { "$it BPM" },
+                            text = "$currentBpm BPM",
                             fontSize = 22.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Black,
-                            modifier = Modifier.padding(vertical = 16.dp)
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
             }
         }
     }
-
 }
+
+
+
 
 
 
