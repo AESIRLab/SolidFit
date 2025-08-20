@@ -84,7 +84,7 @@ tasks.named("preBuild") {
     dependsOn(deleteFolder)
 }
 
-val version = "0.0.51"
+val version = "0.0.52"
 dependencies {
 
     // jwt creation
