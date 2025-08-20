@@ -1,3 +1,16 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+val localProperties = Properties().apply {
+    val file = rootDir.resolve("local.properties")
+    if (file.exists()) {
+        load(FileInputStream(file))
+    }
+}
+
+val gprUser: String? = localProperties.getProperty("gpr.user")
+val gprKey: String? = localProperties.getProperty("gpr.key")
+
 pluginManagement {
     repositories {
         google {
@@ -11,6 +24,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -20,8 +34,8 @@ dependencyResolutionManagement {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/aesirlab/annotations-repo")
             credentials {
-                username = "EvanMeyerss"
-                password = "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"
+                username = gprUser
+                password = gprKey
             }
         }
     }
