@@ -43,24 +43,13 @@ import java.util.Locale
 )
 data class WorkoutItem(
     var id: String,
-    var userId: String,
     var name: String = "",
-    var date: Long = System.currentTimeMillis(),
-    var age: String,
-    var gender: String = "",
-    var height: String,
-    var weight: String,
-//    var duration: String,
-    var stepsTaken: String,
-    var caloriesBurned: String,
-    var hoursSlept: String,
-    var waterIntake: String,
-    var activeMinutes: String,
-    var heartRate: String,
+    var dateCreated: Long = System.currentTimeMillis(),
+    var dateModified: Long,
+    var duration: String,
+    var heartRate: Long,
     var workoutType: String = "",
-    var stressLevel: String,
-    var mood: String = "",
-    var description: String = "",
+    var notes: String = "",
     var mediaUri: String = ""
 )
 
@@ -97,175 +86,38 @@ fun WorkoutItem(
                     modifier = Modifier.padding(bottom = 5.dp),
                     maxLines = 1,
                 )
-                // USER ID
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("User ID: ")
-                        }
-                        // Normal weight
-                        append(workout.userId)
-                    }
-                )
 
-                // GENDER
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Gender: ")
+                // DURATION
+                if (workout.duration.isNotBlank()) {
+                    Text(
+                        text = buildAnnotatedString {
+                            // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                                // Medium weight
+                                append("Duration: ")
+                            }
+                            // Normal weight
+                            append("${workout.duration} minutes")
                         }
-                        // Normal weight
-                        append(workout.gender)
-                    }
-                )
-
-                // HEIGHT
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Height: ")
-                        }
-                        // Normal weight
-                        append("${workout.height} cm")
-                    }
-                )
-
-                // WEIGHT
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Weight: ")
-                        }
-                        // Normal weight
-                        append("${workout.weight} kgs")
-                    }
-                )
-                // STEPS TAKEN
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Steps Taken: ")
-                        }
-                        // Normal weight
-                        append(workout.stepsTaken)
-                    }
-                )
-
-                // CALORIES
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Calories: ")
-                        }
-                        // Normal weight
-                        append(workout.caloriesBurned)
-                    }
-                )
-
-                // HOURS SLEPT
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Hours Slept: ")
-                        }
-                        // Normal weight
-                        append(workout.hoursSlept)
-                    }
-                )
-
-                // WATER INTAKE
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Water Intake: ")
-                        }
-                        // Normal weight
-                        append(workout.waterIntake)
-                    }
-                )
-
-                // ACTIVE MINUTES
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Active Minutes: ")
-                        }
-                        // Normal weight
-                        append(workout.activeMinutes)
-                    }
-                )
-
-                // HEART RATE
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Heart Rate: ")
-                        }
-                        // Normal weight
-                        append("${workout.heartRate} BPM")
-                    }
-                )
+                    )
+                }
 
                 // WORKOUT TYPE
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Workout Type: ")
+                if (workout.workoutType.isNotBlank()) {
+                    Text(
+                        text = buildAnnotatedString {
+                            // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                                // Medium weight
+                                append("Workout Type: ")
+                            }
+                            // Normal weight
+                            append(workout.workoutType)
                         }
-                        // Normal weight
-                        append(workout.workoutType)
-                    }
-                )
+                    )
+                }
 
-                // STRESS LEVEL
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Stress Level: ")
-                        }
-                        // Normal weight
-                        append(workout.stressLevel)
-                    }
-                )
-
-                // MOOD
-                Text(
-                    text = buildAnnotatedString {
-                        // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
-                            // Medium weight
-                            append("Mood: ")
-                        }
-                        // Normal weight
-                        append(workout.mood)
-                    }
-                )
-
-                // DATE
+                // DATE CREATED & MODIFIED
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
@@ -273,22 +125,38 @@ fun WorkoutItem(
                             append("Date: ")
                         }
                         // Normal weight
-                        append(SimpleDateFormat("MM/dd/yyyy: hh:mm a", Locale.getDefault()).format(
-                            Date(workout.date)
-                        ))
+                        append(
+                            SimpleDateFormat("MM/dd/yyyy: hh:mm a", Locale.getDefault()).format(
+                                Date(workout.dateCreated)
+                            ))
                     }
                 )
-
-                // DESCRIPTION
-                if (workout.description.isNotBlank()) {
+                if (workout.dateModified != 0.toLong()) {
                     Text(
-                        // Truncates the description if it's too long
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
+                                // Medium weight
+                                append("Modified: ")
+                            }
+                            // Normal weight
+                            append(
+                                SimpleDateFormat("MM/dd/yyyy: hh:mm a", Locale.getDefault()).format(
+                                    Date(workout.dateModified)
+                                ))
+                        }
+                    )
+                }
+
+                // NOTES
+                if (workout.notes.isNotBlank()) {
+                    Text(
+                        // Truncates the notes if it's too long
                         maxLines = 3,
                         text = buildAnnotatedString {
                             // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Medium)) {
                                 // Medium weight
-                                append("Description: ")
+                                append("Notes: ")
                             }
                             withStyle(
                                 style = SpanStyle(
@@ -299,7 +167,7 @@ fun WorkoutItem(
                                     )
                             ) {
                                 // Smaller, Italicized, Normal-weight font
-                                append(workout.description)
+                                append(workout.notes)
                             }
                         }
                     )

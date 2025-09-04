@@ -86,26 +86,6 @@ fun WorkoutCard(
                 }
             )
 
-            // CALORIES
-            Text(
-                modifier = Modifier.padding(bottom = 5.dp),
-                text = buildAnnotatedString {
-                    // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
-                    withStyle(style = SpanStyle(fontSize = 19.sp, fontWeight = FontWeight.Medium)) {
-                        // Medium weight
-                        append("Calories:\t\t\t")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            fontSize = 18.sp
-                        )
-                    ) {
-                        // Normal weight
-                        append(workout.caloriesBurned)
-                    }
-                }
-            )
-
             // DURATION
             Text(
                 modifier = Modifier.padding(bottom = 5.dp),
@@ -120,7 +100,7 @@ fun WorkoutCard(
                         )
                     ) {
                         // Normal weight
-                        append("${workout.activeMinutes} minutes")
+                        append("${workout.duration} minutes")
                     }
                 }
             )
@@ -141,14 +121,14 @@ fun WorkoutCard(
                         // Normal weight
                         append(
                             SimpleDateFormat("MM/dd/yyyy: hh:mm a", Locale.getDefault()).format(
-                                Date(workout.date)
+                                Date(workout.dateCreated)
                             )
                         )
                     }
                 }
             )
             // DESCRIPTION
-            if (workout.description != "") {
+            if (workout.notes != "") {
                 Text(
                     text = buildAnnotatedString {
                         // Doing this style allows for part of the text to be in the 'Medium' bold style while the data text is normal weight
@@ -161,7 +141,7 @@ fun WorkoutCard(
                 Text(
                     modifier = Modifier.padding(top = 6.dp, bottom = 16.dp),
                     text = buildAnnotatedString {
-                        // Doubled "withStyle" so I could add lineHeight to only the description body
+                        // Doubled "withStyle" so I could add lineHeight to only the notes body
                         withStyle(style = ParagraphStyle(lineHeight = 30.sp)) {
                             withStyle(
                                 style = SpanStyle(
@@ -170,7 +150,7 @@ fun WorkoutCard(
                                 )
                             ) {
                                 // Smaller, Italicized, Normal-weight font
-                                append("\t\t\t${workout.description}")
+                                append("\t\t\t${workout.notes}")
                             }
                         }
                     }

@@ -336,36 +336,33 @@ fun UpdateWorkouts(
                 }
                 val workoutState by viewModel.workoutItem.collectAsState()
                 val editWorkoutCoroutineScope = rememberCoroutineScope()
+
                 workoutState?.let { workout ->
                     key(workout.id) {
                         AddEditWorkoutScreen(
                             workout = workoutState,
-                            onSaveWorkout = { _, userId, name, age, gender, height, weight, stepsTaken, caloriesBurned, hoursSlept, waterIntake, activeMinutes, heartRate, workoutType, stressLevel, mood, description, mediaUri ->
+                            onSaveWorkout = { _, name, duration, workoutType, notes, mediaUri ->
+
+                                val updated = workout.copy(
+                                    name = name,
+                                    dateModified = System.currentTimeMillis(),
+                                    workoutType = workoutType,
+                                    duration = duration,
+                                    notes = notes,
+                                    mediaUri = mediaUri
+                                )
+
                                 editWorkoutCoroutineScope.launch {
-                                    viewModel.update(
-                                        workoutState!!.copy(
-                                            userId = userId,
-                                            name = name,
-                                            age = age,
-                                            gender = gender,
-                                            height = height,
-                                            weight = weight,
-                                            stepsTaken = stepsTaken,
-                                            caloriesBurned = caloriesBurned,
-                                            hoursSlept = hoursSlept,
-                                            waterIntake = waterIntake,
-                                            activeMinutes = activeMinutes,
-                                            heartRate = heartRate,
-                                            workoutType = workoutType,
-                                            stressLevel = stressLevel,
-                                            mood = mood,
-//                                    duration = duration,
-                                            description = description,
-                                            mediaUri = mediaUri
-                                        )
-                                    )
+                                    try {
+                                        viewModel.update(updated)
+                                        navController.navigate(SolidAuthFlowScreen.WorkoutList.name) {
+                                            launchSingleTop = true
+                                            popUpTo(SolidAuthFlowScreen.WorkoutList.name) { inclusive = false }
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("UpdateWorkout", "Failed to update workout", e)
+                                    }
                                     saveWorkoutLog(context)
-                                    navController.navigate(SolidAuthFlowScreen.WorkoutList.name)
                                 }
                             },
                             onCancel = {
@@ -380,28 +377,17 @@ fun UpdateWorkouts(
             composable(route = SolidAuthFlowScreen.AddEditWorkoutScreen.name) {
                 val addWorkoutCoroutineScope = rememberCoroutineScope()
                 AddEditWorkoutScreen(
-                    onSaveWorkout = { _, userId, name, age, gender, height, weight, stepsTaken, caloriesBurned, hoursSlept, waterIntake, activeMinutes, heartRate, workoutType, stressLevel, mood, description, mediaUri ->
+                    onSaveWorkout = { _, name, duration, workoutType, notes, mediaUri ->
                         addWorkoutCoroutineScope.launch {
                             viewModel.insert(
                                 WorkoutItem(
                                     id = "",
-                                    userId = userId,
                                     name = name,
-                                    age = age,
-                                    gender = gender,
-                                    height = height,
-                                    weight = weight,
-                                    stepsTaken = stepsTaken,
-                                    caloriesBurned = caloriesBurned,
-                                    hoursSlept = hoursSlept,
-                                    waterIntake = waterIntake,
-                                    activeMinutes = activeMinutes,
-                                    heartRate = heartRate,
+                                    dateModified = 0,
+                                    duration = duration,
+                                    heartRate = 0,
                                     workoutType = workoutType,
-                                    stressLevel = stressLevel,
-                                    mood = mood,
-//                                    duration = duration,
-                                    description = description,
+                                    notes = notes,
                                     mediaUri = mediaUri
                                 )
                             )

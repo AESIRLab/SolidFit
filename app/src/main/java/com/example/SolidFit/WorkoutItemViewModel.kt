@@ -13,8 +13,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.skCompiler.generatedModel.WorkoutItemRemoteDataSource
 import org.skCompiler.generatedModel.WorkoutItemRepository
 
@@ -28,6 +30,7 @@ class WorkoutItemViewModel(
 
     private val _workoutItem = MutableStateFlow<WorkoutItem?>(null)
     val workoutItem: StateFlow<WorkoutItem?> = _workoutItem
+
 
     init {
         this.viewModelScope.launch {
@@ -170,12 +173,18 @@ class WorkoutItemViewModel(
     }
 
     suspend fun update(item: WorkoutItem) {
-        viewModelScope.launch {
+        withContext(Dispatchers.IO) {
             repository.update(item)
-            repository.allWorkoutItemsAsFlow.collect { list ->
-                _allItems.value = list
-            }
-            remoteDataSource.updateRemoteItemList(_allItems.value)
+        }
+
+        val list = repository.allWorkoutItemsAsFlow.first()
+
+        withContext(Dispatchers.Main) {
+            _allItems.value = list
+        }
+
+        withContext(Dispatchers.IO) {
+            remoteDataSource.updateRemoteItemList(list)
         }
     }
 
