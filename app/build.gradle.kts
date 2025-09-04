@@ -17,17 +17,17 @@ buildscript {
 }
 
 android {
-    namespace = "com.example.workoutsolidproject"
+    namespace = "com.example.SolidFit"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.workoutsolidproject"
+        applicationId = "com.example.SolidFit"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "2.0.10"
         compileSdkPreview = "VanillaIceCream"
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.workoutsolidproject"
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.SolidFit"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -84,7 +84,7 @@ tasks.named("preBuild") {
     dependsOn(deleteFolder)
 }
 
-val version = "0.0.52"
+val version = "0.0.61-stable"
 dependencies {
 
     // jwt creation
